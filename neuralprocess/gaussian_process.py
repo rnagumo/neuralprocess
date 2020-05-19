@@ -27,6 +27,10 @@ class GaussianProcess(torch.nn.Module):
         self.l1_scale = l1_scale
         self.sigma = sigma
 
+        # Saved training data
+        self._x_train = None
+        self._y_train = None
+
     def gaussian_kernel(self, x0: Tensor, x1: Tensor, eps: float = 1e-2
                         ) -> Tensor:
         """Gaussian kernel.
@@ -40,29 +44,29 @@ class GaussianProcess(torch.nn.Module):
 
         Returns:
             kernel (torch.Tensor): kernel matrix of size
-                `(batch_size, y_dim, num_points_0, num_points_1)`.
+                `(batch_size, num_points_0, num_points_1)`.
         """
 
         # Data size
         batch_size, num_points, x_dim = x0.size()
 
         # Kernel parameters
-        l1 = torch.ones(batch_size, self.y_dim, x_dim) * self.l1_scale
-        sigma = torch.ones(batch_size, self.y_dim) * self.sigma
+        l1 = torch.ones(batch_size, x_dim) * self.l1_scale
+        sigma = torch.ones(batch_size) * self.sigma
 
         # Expand and take diff (batch_size, num_points_0, num_points_1, x_dim)
         x0_unsq = x0.unsqueeze(2)  # (batch_size, num_points_0, 1, x_dim)
         x1_unsq = x1.unsqueeze(1)  # (batch_size, 1, num_points_1, x_dim)
         diff = x1_unsq - x0_unsq
 
-        # (batch_size, y_dim, num_points_0, num_points_1)
-        norm = ((diff[:, None] / l1[:, :, None, None]) ** 2).sum(-1)
+        # (batch_size, num_points_0, num_points_1)
+        norm = ((diff / l1[:, None, None, :]) ** 2).sum(-1)
 
-        # (batch_size, y_dim, num_points_0, num_points_1)
-        kernel = (sigma ** 2)[:, :, None, None] * torch.exp(-0.5 * norm)
+        # (batch_size, num_points_0, num_points_1)
+        kernel = (sigma ** 2)[:, None, None] * torch.exp(-0.5 * norm)
 
         # Add some noise to the diagonal to make the cholesky work
-        if kernel.size(2) == kernel.size(3):
+        if kernel.size(1) == kernel.size(2):
             kernel += (eps ** 2) * torch.eye(num_points, device=x0.device)
 
         return kernel
@@ -80,45 +84,71 @@ class GaussianProcess(torch.nn.Module):
 
         batch_size, num_points, _ = x.size()
 
-        # Gaussian kernel (batch_size, y_dim, num_points, num_points)
+        # Gaussian kernel (batch_size, num_points, num_points)
         kernel = self.gaussian_kernel(x, x)
 
         # Calculate cholesky using double precision
         cholesky = torch.cholesky(kernel.double()).float()
 
-        # Sample curve (batch_size, y_size, num_points, 1)
-        y = cholesky.matmul(
-            torch.randn(batch_size, self.y_dim, num_points, 1))
-
-        # (batch_size, num_points, y_size)
-        y = y.squeeze(3).permute(0, 2, 1)
+        # Sample curve (batch_size, num_points, y_size)
+        y = cholesky.matmul(torch.randn(batch_size, num_points, self.y_dim))
 
         return y
 
-    def fit(self, x: Tensor, y: Tensor):
+    def fit(self, x: Tensor, y: Tensor) -> None:
         """Fit Gaussian Process to the given training data.
 
         This method only saves given data.
 
         Args:
             x (torch.Tensor): Input data for training, size
-                `(num_points, x_dim)`.
+                `(batch_size, num_points, x_dim)`.
             y (torch.Tensor): Output data for training, size
-                `(num_points, y_dim)`.
+                `(batch_size, num_points, y_dim)`.
         """
 
         self._x_train = x
         self._y_train = y
 
-    def predict(self, x: Tensor) -> Tensor:
-        """Predict y for given x.
+    def predict(self, x: Tensor, return_cov: bool = False) -> Tensor:
+        """Predict y for given x with previously seen training data.
 
         Args:
-            x (torch.Tensor): Input data for test, size `(num_points, x_dim)`.
+            x (torch.Tensor): Input data for test, size
+                `(batch_size, num_points, x_dim)`.
+            return_cov (bool, optional): If true, covariance of the joint
+                predictive distribution at the query points is returned.
 
         Returns:
-            y (torch.Tensor): Predicted output, size `(num_points, y_dim)`.
+            y (torch.Tensor): Predicted output, size
+                `(batch_size, num_points, y_dim)`.
         """
 
-        # Shift mean of output
-        y_mean = self._y_train.mean()
+        if self._x_train is None or self._y_train is None:
+            return self.inference(x)
+
+        # Shift mean of y train to 0
+        y_mean = self._y_train.mean(dim=[0, 1])
+        y_scale = self._y_train.std(dim=[0, 1]) + 1e-5
+        y_train = self._y_train - y_mean
+
+        # Kernel
+        K_nn = self.gaussian_kernel(self._x_train, self._x_train)
+        K_xx = self.gaussian_kernel(x, x)
+        K_xn = self.gaussian_kernel(x, self._x_train)
+
+        # Solve cholesky for each y_dim
+        L_ = torch.cholesky(K_nn.double()).float()
+        alpha_ = torch.cholesky_solve(y_train, L_)
+
+        # Mean prediction with undoing normalization
+        y_mean = K_xn.matmul(alpha_) * y_scale + y_mean
+
+        if not return_cov:
+            return y_mean
+
+        # Cov
+        v = torch.cholesky_solve(K_xn.transpose(1, 2), L_)
+        y_cov = K_xx - K_xn.matmul(v)
+
+        return y_mean, y_cov
