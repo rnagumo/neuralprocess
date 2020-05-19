@@ -18,7 +18,7 @@ class TestGaussianProcess(unittest.TestCase):
         x_dim = 3
         x0 = torch.randn(batch_size, num_points_0, x_dim)
 
-        kernel = self.model.gaussian_kernel(x0)
+        kernel = self.model.gaussian_kernel(x0, x0)
         self.assertTupleEqual(
             kernel.size(),
             (batch_size, self.y_dim, num_points_0, num_points_0))

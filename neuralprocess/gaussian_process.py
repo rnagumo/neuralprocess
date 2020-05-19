@@ -27,22 +27,20 @@ class GaussianProcess(torch.nn.Module):
         self.l1_scale = l1_scale
         self.sigma = sigma
 
-    def gaussian_kernel(self, x0: Tensor, x1: Optional[Tensor] = None,
-                        eps: float = 1e-2) -> Tensor:
+    def gaussian_kernel(self, x0: Tensor, x1: Tensor, eps: float = 1e-2
+                        ) -> Tensor:
         """Gaussian kernel.
 
         Args:
             x0 (torch.Tensor): First input data of size
                 `(batch_size, num_points_0, x_dim)`.
-            x1 (torch.Tensor, optional): Second input data of size
+            x1 (torch.Tensor): Second input data of size
                 `(batch_size, num_points_1, x_dim)`.
             eps (float, optional): Noise scale.
 
         Returns:
             kernel (torch.Tensor): kernel matrix of size
-                `(batch_size, y_dim, num_points_0, num_points_1)` if x1 is not
-                `None`, `(batch_size, y_dim, num_points_0, num_points_0)`
-                otherwise.
+                `(batch_size, y_dim, num_points_0, num_points_1)`.
         """
 
         # Data size
@@ -52,23 +50,19 @@ class GaussianProcess(torch.nn.Module):
         l1 = torch.ones(batch_size, self.y_dim, x_dim) * self.l1_scale
         sigma = torch.ones(batch_size, self.y_dim) * self.sigma
 
-        # Expand and take diff (batch_size, num_points, num_points, x_dim)
-        if x1 is None:
-            x1_unsq = x0.unsqueeze(1)  # (batch_size, 1, num_points_0, x_dim)
-        else:
-            x1_unsq = x1.unsqueeze(1)  # (batch_size, 1, num_points_1, x_dim)
-
+        # Expand and take diff (batch_size, num_points_0, num_points_1, x_dim)
         x0_unsq = x0.unsqueeze(2)  # (batch_size, num_points_0, 1, x_dim)
+        x1_unsq = x1.unsqueeze(1)  # (batch_size, 1, num_points_1, x_dim)
         diff = x1_unsq - x0_unsq
 
-        # (batch_size, y_dim, num_points, num_points)
+        # (batch_size, y_dim, num_points_0, num_points_1)
         norm = ((diff[:, None] / l1[:, :, None, None]) ** 2).sum(-1)
 
-        # (batch_size, y_dim, num_points, num_points)
+        # (batch_size, y_dim, num_points_0, num_points_1)
         kernel = (sigma ** 2)[:, :, None, None] * torch.exp(-0.5 * norm)
 
         # Add some noise to the diagonal to make the cholesky work
-        if x1 is None:
+        if kernel.size(2) == kernel.size(3):
             kernel += (eps ** 2) * torch.eye(num_points, device=x0.device)
 
         return kernel
@@ -87,7 +81,7 @@ class GaussianProcess(torch.nn.Module):
         batch_size, num_points, _ = x.size()
 
         # Gaussian kernel (batch_size, y_dim, num_points, num_points)
-        kernel = self.gaussian_kernel(x)
+        kernel = self.gaussian_kernel(x, x)
 
         # Calculate cholesky using double precision
         cholesky = torch.cholesky(kernel.double()).float()
