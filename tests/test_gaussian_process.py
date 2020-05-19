@@ -37,6 +37,10 @@ class TestGaussianProcess(unittest.TestCase):
 
         self.assertTupleEqual(y.size(), (batch_size, num_points, self.y_dim))
 
+        with self.assertRaises(ValueError):
+            x = torch.randn(batch_size, x_dim)
+            self.model.inference(x)
+
     def test_fit(self):
         batch_size = 5
         num_points = 10
@@ -47,6 +51,16 @@ class TestGaussianProcess(unittest.TestCase):
         self.model.fit(x, y)
         self.assertTrue((self.model._x_train == x).all().item)
         self.assertTrue((self.model._y_train == y).all().item)
+
+        with self.assertRaises(ValueError):
+            x = torch.randn(batch_size, num_points, x_dim)
+            y = torch.randn(batch_size, num_points)
+            self.model.fit(x, y)
+
+        with self.assertRaises(ValueError):
+            x = torch.randn(batch_size, num_points)
+            y = torch.randn(batch_size, num_points, 1)
+            self.model.fit(x, y)
 
     def test_predict(self):
         batch_size = 5
@@ -65,3 +79,15 @@ class TestGaussianProcess(unittest.TestCase):
         self.assertTupleEqual(y_mean.size(), (batch_size, num_points, y_dim))
         self.assertTupleEqual(
             y_cov.size(), (batch_size, num_points, num_points))
+
+        with self.assertRaises(ValueError):
+            x = torch.randn(batch_size, x_dim)
+            self.model.predict(x)
+
+    def test_predict_with_raise(self):
+        batch_size = 5
+        num_points = 10
+        x_dim = 3
+        x = torch.randn(batch_size, num_points, x_dim)
+        with self.assertRaises(ValueError):
+            self.model.predict(x)

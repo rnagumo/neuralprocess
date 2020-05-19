@@ -82,6 +82,10 @@ class GaussianProcess(torch.nn.Module):
             y (torch.Tensor): Sampled y `(batch_size, num_points, y_dim)`.
         """
 
+        if x.dim() != 3:
+            raise ValueError("Dim of x should be 3 (batch_size, num_points, "
+                             f"x_dim), but given {x.size()}.")
+
         batch_size, num_points, _ = x.size()
 
         # Gaussian kernel (batch_size, num_points, num_points)
@@ -107,6 +111,14 @@ class GaussianProcess(torch.nn.Module):
                 `(batch_size, num_points, y_dim)`.
         """
 
+        if x.dim() != 3:
+            raise ValueError("Dim of x should be 3 (batch_size, num_points, "
+                             f"x_dim), but given {x.size()}.")
+
+        if y.dim() != 3:
+            raise ValueError("Dim of y should be 3 (batch_size, num_points, "
+                             f"y_dim), but given {y.size()}.")
+
         self._x_train = x
         self._y_train = y
 
@@ -124,8 +136,13 @@ class GaussianProcess(torch.nn.Module):
                 `(batch_size, num_points, y_dim)`.
         """
 
+        if x.dim() != 3:
+            raise ValueError("Dim of x should be 3 (batch_size, num_points, "
+                             f"x_dim), but given {x.size()}.")
+
         if self._x_train is None or self._y_train is None:
-            return self.inference(x)
+            raise ValueError("Training data should be given before calling "
+                             "this method.")
 
         # Shift mean of y train to 0
         y_mean = self._y_train.mean(dim=[0, 1])
