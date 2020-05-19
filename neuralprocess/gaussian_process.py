@@ -91,7 +91,7 @@ class GaussianProcess(torch.nn.Module):
         return kernel
 
     def inference(self, x: Tensor, y_dim: int = 1) -> Tensor:
-        """Inference p(y|x).
+        """Inference p(y|x) based on GP prior.
 
         Args:
             x (torch.Tensor): Input tensor of size
@@ -143,7 +143,7 @@ class GaussianProcess(torch.nn.Module):
         self._y_train = y
 
     def predict(self, x: Tensor) -> Tuple[Tensor, Tensor]:
-        """Predict y for given x with previously seen training data.
+        """Predict y*|x*, x, y based on GP posterior.
 
         Args:
             x (torch.Tensor): Input data for test, size
