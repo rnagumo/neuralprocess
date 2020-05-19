@@ -142,12 +142,13 @@ class GaussianProcess(torch.nn.Module):
         self._x_train = x
         self._y_train = y
 
-    def predict(self, x: Tensor) -> Tuple[Tensor, Tensor]:
-        """Predict y*|x*, x, y based on GP posterior.
+    def predict(self, x: Tensor, y_dim: int = 1) -> Tuple[Tensor, Tensor]:
+        """Predict mean and covariance.
 
         Args:
             x (torch.Tensor): Input data for test, size
                 `(batch_size, num_points, x_dim)`.
+            y_dim (int, optional): Output y dim size for prior.
 
         Returns:
             y_mean (torch.Tensor): Predicted output, size
@@ -161,9 +162,14 @@ class GaussianProcess(torch.nn.Module):
             raise ValueError("Dim of x should be 3 (batch_size, num_points, "
                              f"x_dim), but given {x.size()}.")
 
+        # predict y|x based on GP prior
         if self._x_train is None or self._y_train is None:
-            raise ValueError("Training data should be given before calling "
-                             "this method.")
+            batch_size, num_points, _ = x.size()
+            y_mean = torch.zeros(batch_size, num_points, y_dim)
+            y_cov = self.gaussian_kernel(x, x)
+            return y_mean, y_cov
+
+        # predict y*|x*, x, y based on GP posterior
 
         # Shift mean of y train to 0
         y_mean = self._y_train.mean(dim=[0, 1])

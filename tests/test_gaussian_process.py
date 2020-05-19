@@ -95,13 +95,18 @@ class TestGaussianProcess(unittest.TestCase):
             x = torch.randn(batch_size, x_dim)
             self.model.predict(x)
 
-    def test_predict_with_raise(self):
+    def test_predict_prior(self):
         batch_size = 5
         num_points = 10
         x_dim = 3
+        y_dim = 2
         x = torch.randn(batch_size, num_points, x_dim)
-        with self.assertRaises(ValueError):
-            self.model.predict(x)
+        y_mean, y_cov = self.model.predict(x, y_dim)
+        self.assertTupleEqual(y_mean.size(), (batch_size, num_points, y_dim))
+        self.assertTupleEqual(
+            y_cov.size(), (batch_size, num_points, num_points))
+
+        self.assertTrue((y_mean == 0).all().item)
 
     def test_forward(self):
         batch_size = 5
