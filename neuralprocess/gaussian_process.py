@@ -14,14 +14,14 @@ class GaussianProcess(torch.nn.Module):
     """Gaussian Process class.
 
     Args:
-        l1_scale (float, optional): Scale parameter of the Gaussian kernel.
+        l2_scale (float, optional): Scale parameter of the Gaussian kernel.
         sigma (float, optional): Magnitude of std.
     """
 
-    def __init__(self, l1_scale: float = 0.4, sigma: float = 1.0):
+    def __init__(self, l2_scale: float = 0.4, sigma: float = 1.0):
         super().__init__()
 
-        self.l1_scale = l1_scale
+        self.l2_scale = l2_scale
         self.sigma = sigma
 
         # Saved training data
@@ -70,8 +70,8 @@ class GaussianProcess(torch.nn.Module):
         batch_size, num_points, x_dim = x0.size()
 
         # Kernel parameters
-        l1 = torch.ones(batch_size, x_dim) * self.l1_scale
-        sigma = torch.ones(batch_size) * self.sigma
+        l2 = torch.ones(batch_size, 1, 1, x_dim) * self.l2_scale
+        sigma = torch.ones(batch_size, 1, 1) * self.sigma
 
         # Expand and take diff (batch_size, num_points_0, num_points_1, x_dim)
         x0_unsq = x0.unsqueeze(2)  # (batch_size, num_points_0, 1, x_dim)
@@ -79,10 +79,10 @@ class GaussianProcess(torch.nn.Module):
         diff = x1_unsq - x0_unsq
 
         # (batch_size, num_points_0, num_points_1)
-        norm = ((diff / l1[:, None, None, :]) ** 2).sum(-1)
+        norm = ((diff / l2) ** 2).sum(-1)
 
         # (batch_size, num_points_0, num_points_1)
-        kernel = (sigma ** 2)[:, None, None] * torch.exp(-0.5 * norm)
+        kernel = (sigma ** 2) * torch.exp(-0.5 * norm)
 
         # Add some noise to the diagonal to make the cholesky work
         if kernel.size(1) == kernel.size(2):
@@ -112,10 +112,10 @@ class GaussianProcess(torch.nn.Module):
         kernel = self.gaussian_kernel(x, x)
 
         # Calculate cholesky using double precision
-        cholesky = torch.cholesky(kernel.double()).float()
+        chol = torch.cholesky(kernel.double()).float()
 
         # Sample curve (batch_size, num_points, y_size)
-        y = cholesky.matmul(torch.randn(batch_size, num_points, y_dim))
+        y = chol.matmul(torch.randn(batch_size, num_points, y_dim))
 
         return y
 
