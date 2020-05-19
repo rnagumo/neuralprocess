@@ -73,7 +73,7 @@ class GaussianProcess(torch.nn.Module):
             y (torch.Tensor): Sampled y `(batch_size, num_points, y_size)`.
         """
 
-        batch_size, num_points, x_dim = x.size()
+        batch_size, num_points, _ = x.size()
 
         # Gaussian kernel (batch_size, y_dim, num_points, num_points)
         kernel = self.gaussian_kernel(x)
