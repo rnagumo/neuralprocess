@@ -14,13 +14,21 @@ class TestGaussianProcess(unittest.TestCase):
 
     def test_gaussian_kernel(self):
         batch_size = 5
-        num_points = 10
+        num_points_0 = 10
         x_dim = 3
-        x = torch.randn(batch_size, num_points, x_dim)
+        x0 = torch.randn(batch_size, num_points_0, x_dim)
 
-        kernel = self.model.gaussian_kernel(x)
+        kernel = self.model.gaussian_kernel(x0)
         self.assertTupleEqual(
-            kernel.size(), (batch_size, self.y_dim, num_points, num_points))
+            kernel.size(),
+            (batch_size, self.y_dim, num_points_0, num_points_0))
+
+        num_points_1 = 4
+        x1 = torch.randn(batch_size, num_points_1, x_dim)
+        kernel = self.model.gaussian_kernel(x0, x1)
+        self.assertTupleEqual(
+            kernel.size(),
+            (batch_size, self.y_dim, num_points_0, num_points_1))
 
     def test_inference(self):
         batch_size = 5
