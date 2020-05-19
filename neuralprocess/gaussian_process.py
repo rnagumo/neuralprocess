@@ -14,16 +14,13 @@ class GaussianProcess(torch.nn.Module):
     """Gaussian Process class.
 
     Args:
-        y_dim (int, optional): y dimension.
         l1_scale (float, optional): Scale parameter of the Gaussian kernel.
         sigma (float, optional): Magnitude of std.
     """
 
-    def __init__(self, y_dim: int = 1, l1_scale: float = 0.4,
-                 sigma: float = 1.0):
+    def __init__(self, l1_scale: float = 0.4, sigma: float = 1.0):
         super().__init__()
 
-        self.y_dim = y_dim
         self.l1_scale = l1_scale
         self.sigma = sigma
 
@@ -85,12 +82,13 @@ class GaussianProcess(torch.nn.Module):
 
         return kernel
 
-    def inference(self, x: Tensor) -> Tensor:
+    def inference(self, x: Tensor, y_dim: int = 1) -> Tensor:
         """Inference p(y|x).
 
         Args:
             x (torch.Tensor): Input tensor of size
                 `(batch_size. num_points, x_dim)`.
+            y_dim (int, optional): Output y dim size.
 
         Returns:
             y (torch.Tensor): Sampled y `(batch_size, num_points, y_dim)`.
@@ -109,7 +107,7 @@ class GaussianProcess(torch.nn.Module):
         cholesky = torch.cholesky(kernel.double()).float()
 
         # Sample curve (batch_size, num_points, y_size)
-        y = cholesky.matmul(torch.randn(batch_size, num_points, self.y_dim))
+        y = cholesky.matmul(torch.randn(batch_size, num_points, y_dim))
 
         return y
 

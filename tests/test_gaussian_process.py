@@ -9,8 +9,7 @@ import neuralprocess as npr
 class TestGaussianProcess(unittest.TestCase):
 
     def setUp(self):
-        self.y_dim = 2
-        self.model = npr.GaussianProcess(y_dim=self.y_dim)
+        self.model = npr.GaussianProcess()
 
     def test_gaussian_kernel(self):
         batch_size = 5
@@ -33,9 +32,10 @@ class TestGaussianProcess(unittest.TestCase):
         num_points = 10
         x_dim = 3
         x = torch.randn(batch_size, num_points, x_dim)
-        y = self.model.inference(x)
 
-        self.assertTupleEqual(y.size(), (batch_size, num_points, self.y_dim))
+        y_dim = 2
+        y = self.model.inference(x, y_dim)
+        self.assertTupleEqual(y.size(), (batch_size, num_points, y_dim))
 
         with self.assertRaises(ValueError):
             x = torch.randn(batch_size, x_dim)
