@@ -18,7 +18,7 @@ class GaussianProcess(torch.nn.Module):
         sigma (float, optional):
     """
 
-    def __init__(self, y_dim: int = 1, l1_scale: float = 0.4,
+    def __init__(self, y_dim: int = 1, l1_scale: float = 0.1,
                  sigma: float = 1.0):
         super().__init__()
 
