@@ -4,7 +4,7 @@
 Mainly used for data generation and model comparison.
 """
 
-from typing import Optional
+from typing import Tuple
 
 import torch
 from torch import Tensor
@@ -30,6 +30,20 @@ class GaussianProcess(torch.nn.Module):
         # Saved training data
         self._x_train = None
         self._y_train = None
+
+    def forward(self, x: Tensor) -> Tensor:
+        """Forward method for prediction.
+
+        Args:
+            x (torch.Tensor): Input tensor
+
+        Returns:
+            y_mean (torch.Tensor): Predicted output, size
+                `(batch_size, num_points, y_dim)`.
+        """
+
+        y_mean, _ = self.predict(x)
+        return y_mean
 
     def gaussian_kernel(self, x0: Tensor, x1: Tensor, eps: float = 1e-2
                         ) -> Tensor:
@@ -122,18 +136,19 @@ class GaussianProcess(torch.nn.Module):
         self._x_train = x
         self._y_train = y
 
-    def predict(self, x: Tensor, return_cov: bool = False) -> Tensor:
+    def predict(self, x: Tensor) -> Tuple[Tensor, Tensor]:
         """Predict y for given x with previously seen training data.
 
         Args:
             x (torch.Tensor): Input data for test, size
                 `(batch_size, num_points, x_dim)`.
-            return_cov (bool, optional): If true, covariance of the joint
-                predictive distribution at the query points is returned.
 
         Returns:
-            y (torch.Tensor): Predicted output, size
+            y_mean (torch.Tensor): Predicted output, size
                 `(batch_size, num_points, y_dim)`.
+            y_cov (torch.Tensor): Covariance of the joint predictive
+                distribution at the query points, size
+                `(batch_size, num_points, num_points)`.
         """
 
         if x.dim() != 3:
@@ -159,9 +174,6 @@ class GaussianProcess(torch.nn.Module):
 
         # Mean prediction with undoing normalization
         y_mean = K_xn.matmul(alpha_) + y_mean
-
-        if not return_cov:
-            return y_mean
 
         # Cov
         v = torch.cholesky_solve(K_xn.transpose(1, 2), L_)
