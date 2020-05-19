@@ -90,35 +90,6 @@ class GaussianProcess(torch.nn.Module):
 
         return kernel
 
-    def inference(self, x: Tensor, y_dim: int = 1) -> Tensor:
-        """Inference p(y|x) based on GP prior.
-
-        Args:
-            x (torch.Tensor): Input tensor of size
-                `(batch_size. num_points, x_dim)`.
-            y_dim (int, optional): Output y dim size.
-
-        Returns:
-            y (torch.Tensor): Sampled y `(batch_size, num_points, y_dim)`.
-        """
-
-        if x.dim() != 3:
-            raise ValueError("Dim of x should be 3 (batch_size, num_points, "
-                             f"x_dim), but given {x.size()}.")
-
-        batch_size, num_points, _ = x.size()
-
-        # Gaussian kernel (batch_size, num_points, num_points)
-        kernel = self.gaussian_kernel(x, x)
-
-        # Calculate cholesky using double precision
-        chol = torch.cholesky(kernel.double()).float()
-
-        # Sample curve (batch_size, num_points, y_size)
-        y = chol.matmul(torch.randn(batch_size, num_points, y_dim))
-
-        return y
-
     def fit(self, x: Tensor, y: Tensor) -> None:
         """Fit Gaussian Process to the given training data.
 
@@ -192,3 +163,29 @@ class GaussianProcess(torch.nn.Module):
         y_cov = K_xx - K_xn.matmul(v)
 
         return y_mean, y_cov
+
+    def sample(self, x: Tensor, y_dim: int = 1) -> Tensor:
+        """Samples function from GP.
+
+        Args:
+            x (torch.Tensor): Input tensor of size
+                `(batch_size. num_points, x_dim)`.
+            y_dim (int, optional): Output y dim size.
+
+        Returns:
+            y (torch.Tensor): Sampled y `(batch_size, num_points, y_dim)`.
+        """
+
+        # Sample mean and cov
+        mean, cov = self.predict(x, y_dim=y_dim)
+
+        # Dims
+        batch_size, num_points, _ = x.size()
+
+        # Calculate cholesky using double precision
+        chol = torch.cholesky(cov.double()).float()
+
+        # Sample y (batch_size, num_points, y_dim)
+        y = chol.matmul(torch.randn(batch_size, num_points, y_dim)) + mean
+
+        return y

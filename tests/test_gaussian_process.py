@@ -42,20 +42,6 @@ class TestGaussianProcess(unittest.TestCase):
             x1 = torch.randn(batch_size, num_points_1, x_dim + 5)
             self.model.gaussian_kernel(x0, x1)
 
-    def test_inference(self):
-        batch_size = 5
-        num_points = 10
-        x_dim = 3
-        x = torch.randn(batch_size, num_points, x_dim)
-
-        y_dim = 2
-        y = self.model.inference(x, y_dim)
-        self.assertTupleEqual(y.size(), (batch_size, num_points, y_dim))
-
-        with self.assertRaises(ValueError):
-            x = torch.randn(batch_size, x_dim)
-            self.model.inference(x)
-
     def test_fit(self):
         batch_size = 5
         num_points = 10
@@ -119,3 +105,21 @@ class TestGaussianProcess(unittest.TestCase):
         self.model.fit(x, y)
         y_mean = self.model(x)
         self.assertTupleEqual(y_mean.size(), (batch_size, num_points, y_dim))
+
+    def test_sample(self):
+        batch_size = 5
+        num_points = 10
+        x_dim = 3
+        y_dim = 2
+        x = torch.randn(batch_size, num_points, x_dim)
+        y = torch.randn(batch_size, num_points, y_dim)
+
+        # Sample from prior
+        y_sample = self.model.sample(x, y_dim)
+        self.assertTupleEqual(y_sample.size(), (batch_size, num_points, y_dim))
+
+        # Sample from posterior
+        x_sample = torch.randn(batch_size, num_points, x_dim)
+        self.model.fit(x, y)
+        y_sample = self.model.sample(x_sample)
+        self.assertTupleEqual(y_sample.size(), (batch_size, num_points, y_dim))
