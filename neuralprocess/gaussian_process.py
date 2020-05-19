@@ -129,7 +129,6 @@ class GaussianProcess(torch.nn.Module):
 
         # Shift mean of y train to 0
         y_mean = self._y_train.mean(dim=[0, 1])
-        y_scale = self._y_train.std(dim=[0, 1]) + 1e-5
         y_train = self._y_train - y_mean
 
         # Kernel
@@ -142,7 +141,7 @@ class GaussianProcess(torch.nn.Module):
         alpha_ = torch.cholesky_solve(y_train, L_)
 
         # Mean prediction with undoing normalization
-        y_mean = K_xn.matmul(alpha_) * y_scale + y_mean
+        y_mean = K_xn.matmul(alpha_) + y_mean
 
         if not return_cov:
             return y_mean
