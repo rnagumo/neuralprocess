@@ -11,6 +11,14 @@ class TestGaussianProcess(unittest.TestCase):
     def setUp(self):
         self.model = npr.GaussianProcess()
 
+    def test_init(self):
+
+        with self.assertRaises(ValueError):
+            npr.GaussianProcess(l2_scale=0.)
+
+        with self.assertRaises(ValueError):
+            npr.GaussianProcess(sigma=0.)
+
     def test_gaussian_kernel(self):
         batch_size = 5
         num_points_0 = 10

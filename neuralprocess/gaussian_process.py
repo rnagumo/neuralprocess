@@ -28,6 +28,13 @@ class GaussianProcess(torch.nn.Module):
         self._x_train = None
         self._y_train = None
 
+        # Check parameters
+        if self.l2_scale <= 0:
+            raise ValueError("L2 scale parameter should be >0")
+
+        if self.sigma <= 0:
+            raise ValueError("Sigma should be >0")
+
     def forward(self, x: Tensor) -> Tensor:
         """Forward method for prediction.
 
@@ -69,20 +76,16 @@ class GaussianProcess(torch.nn.Module):
         # Data size
         batch_size, num_points, x_dim = x0.size()
 
-        # Kernel parameters
-        l2 = torch.ones(batch_size, 1, 1, x_dim) * self.l2_scale
-        sigma = torch.ones(batch_size, 1, 1) * self.sigma
-
         # Expand and take diff (batch_size, num_points_0, num_points_1, x_dim)
         x0_unsq = x0.unsqueeze(2)  # (batch_size, num_points_0, 1, x_dim)
         x1_unsq = x1.unsqueeze(1)  # (batch_size, 1, num_points_1, x_dim)
         diff = x1_unsq - x0_unsq
 
-        # (batch_size, num_points_0, num_points_1)
-        norm = ((diff / l2) ** 2).sum(-1)
+        # Norm (batch_size, num_points_0, num_points_1)
+        norm = ((diff / self.l2_scale) ** 2).sum(-1)
 
-        # (batch_size, num_points_0, num_points_1)
-        kernel = (sigma ** 2) * torch.exp(-0.5 * norm)
+        # Gaussian kernel (batch_size, num_points_0, num_points_1)
+        kernel = (self.sigma ** 2) * torch.exp(-0.5 * norm)
 
         # Add some noise to the diagonal to make the cholesky work
         if kernel.size(1) == kernel.size(2):
