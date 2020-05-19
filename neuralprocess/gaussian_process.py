@@ -18,7 +18,7 @@ class GaussianProcess(torch.nn.Module):
         sigma (float, optional): Magnitude of std.
     """
 
-    def __init__(self, y_dim: int = 1, l1_scale: float = 0.1,
+    def __init__(self, y_dim: int = 1, l1_scale: float = 0.4,
                  sigma: float = 1.0):
         super().__init__()
 
@@ -89,3 +89,31 @@ class GaussianProcess(torch.nn.Module):
         y = y.squeeze(3).permute(0, 2, 1)
 
         return y
+
+    def fit(self, x: Tensor, y: Tensor):
+        """Fit Gaussian Process to the given training data.
+
+        This method only saves given data.
+
+        Args:
+            x (torch.Tensor): Input data for training, size
+                `(num_points, x_dim)`.
+            y (torch.Tensor): Output data for training, size
+                `(num_points, y_dim)`.
+        """
+
+        self._x_train = x
+        self._y_train = y
+
+    def predict(self, x: Tensor) -> Tensor:
+        """Predict y for given x.
+
+        Args:
+            x (torch.Tensor): Input data for test, size `(num_points, x_dim)`.
+
+        Returns:
+            y (torch.Tensor): Predicted output, size `(num_points, y_dim)`.
+        """
+
+        # Shift mean of output
+        y_mean = self._y_train.mean()
