@@ -27,6 +27,21 @@ class TestGaussianProcess(unittest.TestCase):
         self.assertTupleEqual(
             kernel.size(), (batch_size, num_points_0, num_points_1))
 
+    def test_gaussian_kernel_with_raises(self):
+        batch_size = 5
+        num_points_0 = 10
+        num_points_1 = 4
+        x_dim = 3
+        x0 = torch.randn(batch_size, num_points_0, x_dim)
+
+        with self.assertRaises(ValueError):
+            x1 = torch.randn(batch_size + 5, num_points_1, x_dim)
+            self.model.gaussian_kernel(x0, x1)
+
+        with self.assertRaises(ValueError):
+            x1 = torch.randn(batch_size, num_points_1, x_dim + 5)
+            self.model.gaussian_kernel(x0, x1)
+
     def test_inference(self):
         batch_size = 5
         num_points = 10

@@ -58,6 +58,14 @@ class GaussianProcess(torch.nn.Module):
                 `(batch_size, num_points_0, num_points_1)`.
         """
 
+        if x0.size(0) != x1.size(0):
+            raise ValueError("Batch size of x0 and x1 should be same: "
+                             f"x0 size = {x0.size}, x1 size = {x1.size()}")
+
+        if x0.size(2) != x1.size(2):
+            raise ValueError("Dimension size of x0 and x1 should be same: "
+                             f"x0 size = {x0.size}, x1 size = {x1.size()}")
+
         # Data size
         batch_size, num_points, x_dim = x0.size()
 
