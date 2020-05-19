@@ -14,8 +14,8 @@ class GaussianProcess(torch.nn.Module):
 
     Args:
         y_dim (int, optional): y dimension.
-        l1_scale (float, optional):
-        sigma (float, optional):
+        l1_scale (float, optional): Scale parameter of the Gaussian kernel.
+        sigma (float, optional): Magnitude of std.
     """
 
     def __init__(self, y_dim: int = 1, l1_scale: float = 0.1,
@@ -36,7 +36,7 @@ class GaussianProcess(torch.nn.Module):
 
         Returns:
             kernel (torch.Tensor): kernel matrix of size
-                `(batch_size, y_dim, num_points, num_points)`
+                `(batch_size, y_dim, num_points, num_points)`.
         """
 
         # Data size
@@ -70,7 +70,7 @@ class GaussianProcess(torch.nn.Module):
                 `(batch_size. num_points, x_dim)`.
 
         Returns:
-            y (torch.Tensor): Sumpled y `(batch_size, num_points, y_size)`.
+            y (torch.Tensor): Sampled y `(batch_size, num_points, y_size)`.
         """
 
         batch_size, num_points, x_dim = x.size()
