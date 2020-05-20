@@ -207,17 +207,8 @@ class Trainer:
 
         self.writer.close()
 
-    def run(self) -> None:
-        """Main run method."""
-
-        # Settings
-        self.check_logdir()
-        self.init_logger()
-        self.init_writer()
-
-        self.logger.info("Start run")
-        self.logger.info(f"Logdir: {self.logdir}")
-        self.logger.info(f"Params: {self.hparams}")
+    def _base_run(self):
+        """Base running method."""
 
         # Data
         self.load_dataloader(self.hparams["train_dataset_params"],
@@ -246,5 +237,22 @@ class Trainer:
 
         # Post process
         self.quit()
+
+    def run(self) -> None:
+        """Main run method."""
+
+        # Settings
+        self.check_logdir()
+        self.init_logger()
+        self.init_writer()
+
+        self.logger.info("Start run")
+        self.logger.info(f"Logdir: {self.logdir}")
+        self.logger.info(f"Params: {self.hparams}")
+
+        try:
+            self._base_run()
+        except Exception as e:
+            self.logger.exception(f"Run function error: {e}")
 
         self.logger.info("Finish run")
