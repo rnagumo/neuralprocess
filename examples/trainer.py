@@ -6,6 +6,8 @@ import logging
 import pathlib
 import time
 
+import matplotlib.pyplot as plt
+
 import torch
 from torch import optim
 import tensorboardX as tb
@@ -207,6 +209,29 @@ class Trainer:
 
         self.writer.close()
 
+    def save_plot(self, epoch) -> None:
+        x_ctx, y_ctx, x_tgt, y_tgt = next(iter(self.test_loader))
+        with torch.no_grad():
+            mu, logvar = self.model.query(x_ctx, y_ctx, x_tgt)
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(x_tgt.squeeze(-1)[0], y_tgt.squeeze(-1)[0], "k:",
+                 label="True function")
+        plt.plot(x_ctx.squeeze(-1)[0], y_ctx.squeeze(-1)[0], "ko",
+                 label="Context data")
+        plt.plot(x_tgt.squeeze(-1)[0], mu.squeeze(-1)[0], "b",
+                 label="Sampled function")
+        plt.fill_between(
+            x_tgt.squeeze(-1)[0],
+            (mu + torch.exp(0.5 * logvar)).squeeze(-1)[0],
+            (mu - torch.exp(0.5 * logvar)).squeeze(-1)[0],
+            color="b", alpha=0.2, label="1-sigma range")
+        plt.legend(loc="upper right")
+        plt.title(f"Training results (epoch={epoch})")
+        plt.tight_layout()
+        plt.savefig(self.logdir / f"fig_{epoch}.png")
+        plt.close()
+
     def _base_run(self) -> None:
         """Base running method."""
 
@@ -234,6 +259,9 @@ class Trainer:
 
                 # Save trained model
                 self.save(epoch, test_loss)
+
+                # Save plot
+                self.save_plot(epoch)
 
         # Post process
         self.quit()
