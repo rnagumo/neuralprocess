@@ -209,11 +209,19 @@ class Trainer:
 
         self.writer.close()
 
-    def save_plot(self, epoch) -> None:
+    def save_plot(self, epoch: int) -> None:
+        """Plot and save a figure.
+
+        Args:
+            epoch (int): Number of epoch.
+        """
+
+        # Query y_target
         x_ctx, y_ctx, x_tgt, y_tgt = next(iter(self.test_loader))
         with torch.no_grad():
             mu, logvar = self.model.query(x_ctx, y_ctx, x_tgt)
 
+        # Plot
         plt.figure(figsize=(10, 6))
         plt.plot(x_tgt.squeeze(-1)[0], y_tgt.squeeze(-1)[0], "k:",
                  label="True function")
