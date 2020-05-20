@@ -58,9 +58,8 @@ class TestEncoder(unittest.TestCase):
             x_context, y_context, x_target, y_target)
 
         self.assertIsInstance(loss_dict, dict)
-        self.assertTupleEqual(
-            loss_dict["loss"].size(), (batch_size, num_target))
-        self.assertTrue((loss_dict["loss"] > 0).all())
+        self.assertIsInstance(loss_dict["loss"], torch.Tensor)
+        self.assertTrue(loss_dict["loss"] > 0)
 
 
 if __name__ == "__main__":

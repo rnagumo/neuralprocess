@@ -203,8 +203,7 @@ class ConditionalNP(nn.Module):
                 `(batch_size, num_target, y_dim)`.
 
         Returns:
-            loss_dict (dict of [str, torch.Tensor]): Calculated loss, size
-                `(batch_size, num_target)`.
+            loss_dict (dict of [str, torch.Tensor]): Calculated loss.
         """
 
         mu, logvar = self.query(x_context, y_context, x_target)
@@ -214,6 +213,6 @@ class ConditionalNP(nn.Module):
         cov = (torch.eye(y_dim).repeat(batch_size, num_target, 1, 1)
                * torch.exp(logvar).unsqueeze(-1))
         dist = MultivariateNormal(mu, cov)
-        log_p = dist.log_prob(y_target)
+        log_p = dist.log_prob(y_target).sum()
 
         return {"loss": -log_p}
