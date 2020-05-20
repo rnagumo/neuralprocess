@@ -1,8 +1,6 @@
 
 """Trainer class."""
 
-from typing import Tuple
-
 import logging
 import pathlib
 import time
