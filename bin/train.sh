@@ -10,6 +10,6 @@ export LOGDIR=./logs/
 export EXPERIMENT_NAME=tmp
 
 # Config for training
-export CONFIG_PATH=./example/config_1d.json
+export CONFIG_PATH=./examples/config_1d.json
 
 python3 ./examples/run.py --model ${MODEL_NAME} --seed ${SEED}
