@@ -60,6 +60,7 @@ class TestEncoder(unittest.TestCase):
         self.assertIsInstance(loss_dict, dict)
         self.assertTupleEqual(
             loss_dict["loss"].size(), (batch_size, num_target))
+        self.assertTrue((loss_dict["loss"] > 0).all())
 
 
 if __name__ == "__main__":

@@ -216,4 +216,4 @@ class ConditionalNP(nn.Module):
         dist = MultivariateNormal(mu, cov)
         log_p = dist.log_prob(y_target)
 
-        return {"loss": log_p}
+        return {"loss": -log_p}
