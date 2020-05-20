@@ -131,3 +131,7 @@ class TestGaussianProcess(unittest.TestCase):
         self.model.fit(x, y)
         y_sample = self.model.sample(x_sample)
         self.assertTupleEqual(y_sample.size(), (batch_size, num_points, y_dim))
+
+
+if __name__ == "__main__":
+    unittest.main()

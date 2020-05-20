@@ -89,3 +89,7 @@ class TestGPDataset(unittest.TestCase):
     def test_len(self):
         dataset = npr.GPDataset(train=True, **self.params)
         self.assertEqual(len(dataset), self.params["batch_size"])
+
+
+if __name__ == "__main__":
+    unittest.main()
