@@ -17,11 +17,11 @@ class Trainer:
     """Updater class for neural process.
 
     Args:
-        model (neuralprocess.NeuralProcess): NP model.
+        model (neuralprocess.BaseNP): NP model.
         hparams (dict): Dictionary of hyper-parameters.
     """
 
-    def __init__(self, model, hparams):
+    def __init__(self, model: npr.BaseNP, hparams: dict):
         # Params
         self.model = model
         self.hparams = hparams
@@ -207,7 +207,7 @@ class Trainer:
 
         self.writer.close()
 
-    def _base_run(self):
+    def _base_run(self) -> None:
         """Base running method."""
 
         # Data
@@ -250,6 +250,7 @@ class Trainer:
         self.logger.info(f"Logdir: {self.logdir}")
         self.logger.info(f"Params: {self.hparams}")
 
+        # Run
         try:
             self._base_run()
         except Exception as e:
