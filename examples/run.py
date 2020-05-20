@@ -24,7 +24,7 @@ def main():
 
     # Configs
     config_path = pathlib.Path(
-        os.getenv("CONFIG_PATH", "./example/config_1d.json"))
+        os.getenv("CONFIG_PATH", "./examples/config_1d.json"))
     with config_path.open() as f:
         config = json.load(f)
 
