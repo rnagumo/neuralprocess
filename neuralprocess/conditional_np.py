@@ -8,6 +8,8 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 from torch.distributions import MultivariateNormal
 
+from .base_np import BaseNP
+
 
 class Encoder(nn.Module):
     """Encoder and aggregator.
@@ -125,7 +127,7 @@ class Decoder(nn.Module):
         return mu, logvar
 
 
-class ConditionalNP(nn.Module):
+class ConditionalNP(BaseNP):
     """Conditional Neural Process.
 
     Args:
