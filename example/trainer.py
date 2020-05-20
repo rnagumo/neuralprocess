@@ -1,12 +1,14 @@
 
 """Trainer class."""
 
+import collections
 import logging
 import pathlib
 import time
 
 import torch
 from torch import optim
+import tensorboardX as tb
 
 import neuralprocess as npr
 
@@ -27,6 +29,7 @@ class Trainer:
         # Attributes
         self.logdir = None
         self.logger = None
+        self.writer = None
         self.train_loader = None
         self.test_loader = None
         self.optimizer = None
@@ -80,6 +83,11 @@ class Trainer:
 
         self.logger = logger
 
+    def init_writer(self) -> None:
+        """Initializes tensorboard writer."""
+
+        self.writer = tb.SummaryWriter(str(self.logdir))
+
     def load_dataloader(self, train_dataset_params: dict,
                         test_dataset_params: dict) -> None:
         """Loads data loader for training and test.
@@ -99,14 +107,20 @@ class Trainer:
             npr.GPDataset(train=False, **test_dataset_params),
             shuffle=False, batch_size=test_dataset_params["batch_size"])
 
-    def train(self) -> float:
+    def train(self, epoch: int) -> float:
         """Trains model.
+
+        Args:
+            epoch (int): Current epoch.
 
         Returns:
             train_loss (float): Accumulated loss per iteration.
         """
 
-        train_loss = 0.0
+        # Logger for loss
+        loss_dict = collections.defaultdict(float)
+
+        # Run
         self.model.train()
         for data in self.train_loader:
             # Data to device
@@ -114,35 +128,53 @@ class Trainer:
 
             # Forward
             self.optimizer.zero_grad()
-            loss_dict = self.model.loss_func(*data)
-            loss = loss_dict.pop("loss")
+            _tmp_loss_dict = self.model.loss_func(*data)
+            loss = _tmp_loss_dict["loss"]
 
             # Backward
             loss.backward()
             self.optimizer.step()
 
             # Save loss
-            train_loss += loss.item()
+            for key, value in _tmp_loss_dict.items():
+                loss_dict[key] += value.item()
 
-        return train_loss
+        # Summary
+        for key, value in loss_dict.items():
+            self.writer.add_scalar(f"train/{key}", value, epoch)
 
-    def test(self) -> float:
+        return loss_dict["loss"]
+
+    def test(self, epoch: int) -> float:
         """Tests model.
+
+        Args:
+            epoch (int): Current epoch.
 
         Returns:
             test_loss (float): Accumulated loss per iteration.
         """
 
-        test_loss = 0.0
+        # Logger for loss
+        loss_dict = collections.defaultdict(float)
+
+        # Run
         self.model.eval()
         for data in self.test_loader:
             with torch.no_grad():
                 # Data to device
                 data = (v.to(self.device) for v in data)
-                loss_dict = self.model.loss_func(*data)
-            test_loss += loss_dict.pop("loss").item()
+                _tmp_loss_dict = self.model.loss_func(*data)
 
-        return test_loss
+            # Save loss
+            for key, value in _tmp_loss_dict.items():
+                loss_dict[key] += value.item()
+
+        # Summary
+        for key, value in loss_dict.items():
+            self.writer.add_scalar(f"test/{key}", value, epoch)
+
+        return loss_dict["loss"]
 
     def save(self, epoch: int, loss: float) -> None:
         """Saves trained model and optimizer to checkpoint file.
@@ -173,16 +205,19 @@ class Trainer:
         torch.save(self.train_loader, self.logdir / "train_loader.pt")
         torch.save(self.test_loader, self.logdir / "test_loader.pt")
 
+        self.writer.close()
+
     def run(self) -> None:
         """Main run method."""
 
         # Settings
         self.check_logdir()
         self.init_logger()
+        self.init_writer()
 
         self.logger.info("Start run")
         self.logger.info(f"Logdir: {self.logdir}")
-        self.logger.info(f"Args: {self.hparams}")
+        self.logger.info(f"Params: {self.hparams}")
 
         # Data
         self.load_dataloader(self.hparams["train_dataset_params"],
@@ -200,11 +235,11 @@ class Trainer:
 
         for epoch in range(1, self.hparams["epochs"] + 1):
             # Training
-            self.train()
+            self.train(epoch)
 
             if epoch % self.hparams["log_save_interval"] == 0:
                 # Calculate test loss
-                test_loss = self.test()
+                test_loss = self.test(epoch)
 
                 # Save trained model
                 self.save(epoch, test_loss)
