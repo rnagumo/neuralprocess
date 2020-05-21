@@ -33,27 +33,6 @@ class BaseNP(nn.Module):
         mu, _ = self.query(x_context, y_context, x_target)
         return mu
 
-    def sample(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
-               ) -> Tensor:
-        """Sample function from query (x_target).
-
-        Args:
-            x_context (torch.Tensor): x for context, size
-                `(batch_size, num_context, x_dim)`.
-            y_context (torch.Tensor): y for context, size
-                `(batch_size, num_context, y_dim)`.
-            x_target (torch.Tensor): x for target, size
-                `(batch_size, num_target, x_dim)`.
-
-        Returns:
-            y_target (torch.Tensor): y queried by target x and encoded
-                representation, size `(batch_size, num_target, y_dim)`.
-        """
-
-        mu, logvar = self.query(x_context, y_context, x_target)
-        eps = torch.randn(logvar.size())
-        return mu + logvar * eps
-
     def query(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
               ) -> Tuple[Tensor, Tensor]:
         """Query y target.
