@@ -18,9 +18,10 @@ class Encoder(nn.Module):
         x_dim (int): Dimension size of x.
         y_dim (int): Dimension size of y.
         r_dim (int): Dimension size of r (deterministic representation).
+        z_dim (int): Dimension size of z (stochastic latent).
     """
 
-    def __init__(self, x_dim: int, y_dim: int, r_dim: int):
+    def __init__(self, x_dim: int, y_dim: int, r_dim: int, z_dim: int):
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -30,8 +31,10 @@ class Encoder(nn.Module):
             nn.ReLU(),
             nn.Linear(128, r_dim),
         )
+        self.fc_mu = nn.Linear(r_dim, z_dim)
+        self.fc_var = nn.Linear(r_dim, z_dim)
 
-    def forward(self, x: Tensor, y: Tensor) -> Tensor:
+    def forward(self, x: Tensor, y: Tensor) -> Tuple[Tensor, Tensor]:
         """Forward method f(r|x, y).
 
         Args:
@@ -41,8 +44,10 @@ class Encoder(nn.Module):
                 `(batch_size, num_context, y_dim)`.
 
         Returns:
-            representation (torch.Tensor): Aggregated representation, size
-                `(batch_size, r_dim)`.
+            mu (torch.Tensor): Aggregated mean, size
+                `(batch_size, z_dim)`.
+           var (torch.Tensor): Aggregated variance, size
+                `(batch_size, z_dim)`.
         """
 
         h = torch.cat([x, y], dim=-1)
@@ -60,37 +65,7 @@ class Encoder(nn.Module):
         # Aggregate representations for each batch
         r = h.sum(dim=1)
 
-        return r
-
-
-class Aggregator(nn.Module):
-    """Aggregator class.
-
-    Args:
-        r_dim (int): Dimension size of r (deterministic representation).
-        z_dim (int): Dimension size of z (stochastic latent).
-    """
-
-    def __init__(self, r_dim: int, z_dim: int):
-        super().__init__()
-
-        self.fc_mu = nn.Linear(r_dim, z_dim)
-        self.fc_var = nn.Linear(r_dim, z_dim)
-
-    def forward(self, r: Tensor) -> Tuple[Tensor, Tensor]:
-        """Foward method p(z|r).
-
-        Args:
-            r (torch.Tensor): Aggregated representation, size
-                `(batch_size, r_dim)`.
-
-        Returns:
-            mu (torch.Tensor): Aggregated mean, size
-                `(batch_size, z_dim)`.
-           var (torch.Tensor): Aggregated variance, size
-                `(batch_size, z_dim)`.
-        """
-
+        # Mu and var of N(z|mu(r), var(r)^0.5)
         mu = self.fc_mu(r)
         var = F.softplus(self.fc_var(r))
 
@@ -174,8 +149,7 @@ class NeuralProcess(BaseNP):
     def __init__(self, x_dim: int, y_dim: int, r_dim: int, z_dim: int):
         super().__init__()
 
-        self.encoder = Encoder(x_dim, y_dim, r_dim)
-        self.aggregator = Aggregator(r_dim, z_dim)
+        self.encoder = Encoder(x_dim, y_dim, r_dim, z_dim)
         self.decoder = Decoder(x_dim, y_dim, z_dim)
 
     def query(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
@@ -198,8 +172,7 @@ class NeuralProcess(BaseNP):
         """
 
         # Encode latents
-        representation = self.encoder(x_context, y_context)
-        mu_z, var_z = self.aggregator(representation)
+        mu_z, var_z = self.encoder(x_context, y_context)
         z = mu_z + (var_z ** 0.5) * torch.randn(var_z.size())
 
         # Query
@@ -225,8 +198,7 @@ class NeuralProcess(BaseNP):
         """
 
         # Forward
-        representation = self.encoder(x_context, y_context)
-        mu_z, var_z = self.aggregator(representation)
+        mu_z, var_z = self.encoder(x_context, y_context)
         z = mu_z + (var_z ** 0.5) * torch.randn(var_z.size())
         mu, var = self.decoder(x_target, z)
 
