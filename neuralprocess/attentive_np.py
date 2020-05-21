@@ -203,7 +203,9 @@ class AttentiveNP(BaseNP):
         z_dim (int): Dimension size of z (stochastic latent).
 
     Attributes:
-        encoder (Encoder): Encoder for representation.
+        encoder_r (DeterministicEncoder): Encoder for deterministic
+            representation `r`.
+        encoder_z (StochasticEncoder): Encoder for stochastic latent `z`.
         decoder (Decoder): Decoder for predicting y with representation and
             query.
     """
