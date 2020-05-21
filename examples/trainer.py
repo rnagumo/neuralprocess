@@ -221,11 +221,10 @@ class Trainer:
                  label="Context data")
         plt.plot(x_tgt.squeeze(-1)[0], mu.squeeze(-1)[0], "b",
                  label="Sampled function")
-        plt.fill_between(
-            x_tgt.squeeze(-1)[0],
-            (mu + torch.exp(0.5 * logvar)).squeeze(-1)[0],
-            (mu - torch.exp(0.5 * logvar)).squeeze(-1)[0],
-            color="b", alpha=0.2, label="1-sigma range")
+        plt.fill_between(x_tgt.squeeze(-1)[0],
+                         (mu + torch.exp(0.5 * logvar)).squeeze(-1)[0],
+                         (mu - torch.exp(0.5 * logvar)).squeeze(-1)[0],
+                         color="b", alpha=0.2, label="1-sigma range")
         plt.legend(loc="upper right")
         plt.title(f"Training results (epoch={epoch})")
         plt.tight_layout()
