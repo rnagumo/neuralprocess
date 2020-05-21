@@ -6,7 +6,7 @@ from typing import Tuple, Dict
 import torch
 from torch import Tensor, nn
 from torch.nn import functional as F
-from torch.distributions import MultivariateNormal
+from torch.distributions import Normal
 
 from .base_np import BaseNP
 
@@ -186,11 +186,8 @@ class ConditionalNP(BaseNP):
 
         mu, var = self.query(x_context, y_context, x_target)
 
-        # Distribution
-        batch_size, num_target, y_dim = var.size()
-        cov = (torch.eye(y_dim).repeat(batch_size, num_target, 1, 1)
-               * var.unsqueeze(-1))
-        dist = MultivariateNormal(mu, cov)
+        # Log likelihood
+        dist = Normal(mu, var ** 0.5)
         log_p = dist.log_prob(y_target).sum()
 
         return {"loss": -log_p}

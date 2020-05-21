@@ -6,7 +6,7 @@ from typing import Tuple, Dict
 import torch
 from torch import Tensor, nn
 from torch.nn import functional as F
-from torch.distributions import MultivariateNormal
+from torch.distributions import Normal
 
 from .base_np import BaseNP
 
@@ -231,10 +231,7 @@ class NeuralProcess(BaseNP):
         mu, var = self.decoder(x_target, z)
 
         # Log likelihood
-        batch_size, num_target, y_dim = var.size()
-        cov = (torch.eye(y_dim).repeat(batch_size, num_target, 1, 1)
-               * var.unsqueeze(-1))
-        dist = MultivariateNormal(mu, cov)
+        dist = Normal(mu, var ** 0.5)
         log_p = dist.log_prob(y_target).sum()
 
         # KL divergence KL(N(mu_z, sigma_z) || N(0, I))
