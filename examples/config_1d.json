@@ -25,5 +25,12 @@
         "y_dim": 1,
         "r_dim": 5,
         "z_dim": 5
+    },
+    "anp_params": {
+        "x_dim": 1,
+        "y_dim": 1,
+        "r_dim": 5,
+        "s_dim": 5,
+        "z_dim": 5
     }
 }
