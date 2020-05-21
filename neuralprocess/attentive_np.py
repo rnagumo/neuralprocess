@@ -266,17 +266,20 @@ class AttentiveNP(BaseNP):
 
         # Forward
         r = self.encoder_r(x_context, y_context)
-        mu_z, var_z = self.encoder_z(x_context, y_context)
-        z = mu_z + (var_z ** 0.5) * torch.randn(var_z.size())
+        mu_z_c, var_z_c = self.encoder_z(x_context, y_context)
+        z = mu_z_c + (var_z_c ** 0.5) * torch.randn(var_z_c.size())
         mu, var = self.decoder(x_target, r, z)
 
         # Log likelihood
         dist = Normal(mu, var ** 0.5)
         log_p = dist.log_prob(y_target).sum()
 
-        # KL divergence KL(N(mu_z, sigma_z) || N(0, I))
-        kl_div = 0.5 * (var_z.sum(1) + (mu_z * mu_z).sum(1) - mu_z.size(1)
-                        - var_z.prod(1).log()).sum()
+        # KL divergence KL(N(mu_z_t, var_z_t^0.5) || N(mu_z_c, var_z_c^0.5))
+        mu_z_t, var_z_t = self.encoder_z(x_target, y_target)
+        mu_diff = mu_z_c - mu_z_t
+        kl_div = ((var_z_t / var_z_c).sum(1)
+                  + (mu_diff / var_z_c * mu_diff).sum(1) - mu_z_c.size(1)
+                  + (var_z_c.prod(1) / var_z_t.prod(1)).log()).sum() * 0.5
 
         # ELBO loss
         loss = -log_p + kl_div
