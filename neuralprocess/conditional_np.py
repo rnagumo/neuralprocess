@@ -64,7 +64,7 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    """Decoder
+    """Decoder.
 
     Args:
         x_dim (int): Dimension size of x.
@@ -124,7 +124,7 @@ class Decoder(nn.Module):
 
 
 class ConditionalNP(BaseNP):
-    """Conditional Neural Process.
+    """Conditional Neural Process class.
 
     Args:
         x_dim (int): Dimension size of x.
