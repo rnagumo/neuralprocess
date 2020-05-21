@@ -47,6 +47,7 @@ def main():
     # NP model
     model_dict = {
         "cnp": npr.ConditionalNP,
+        "np": npr.NeuralProcess,
     }
     model = model_dict[args.model](**config[f"{args.model}_params"])
 

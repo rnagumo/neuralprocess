@@ -19,5 +19,11 @@
         "x_dim": 1,
         "y_dim": 1,
         "r_dim": 5
+    },
+    "np_params": {
+        "x_dim": 1,
+        "y_dim": 1,
+        "r_dim": 5,
+        "z_dim": 5
     }
 }
