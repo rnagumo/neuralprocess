@@ -263,7 +263,7 @@ class Trainer:
         # Run training
         self.logger.info("Start training")
         pbar = tqdm.trange(1, self.hparams["epochs"] + 1)
-        postfix = collections.OrderedDict({"train/loss": 0, "test/loss": 0})
+        postfix = {"train/loss": 0, "test/loss": 0}
         for epoch in pbar:
             # Training
             train_loss = self.train(epoch)
