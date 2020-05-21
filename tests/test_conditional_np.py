@@ -6,7 +6,7 @@ import torch
 import neuralprocess as npr
 
 
-class TestEncoder(unittest.TestCase):
+class TestConditionalNP(unittest.TestCase):
 
     def setUp(self):
         self.x_dim = 3
