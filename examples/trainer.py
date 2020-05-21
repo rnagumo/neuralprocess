@@ -7,6 +7,7 @@ import pathlib
 import time
 
 import matplotlib.pyplot as plt
+import tqdm
 
 import torch
 from torch import optim
@@ -77,7 +78,7 @@ class Trainer:
         # Set file handler (log file)
         if save_file:
             fh = logging.FileHandler(filename=logpath)
-            fh.setLevel(logging.INFO)
+            fh.setLevel(logging.DEBUG)
             fh_fmt = logging.Formatter("%(asctime)s - %(module)s.%(funcName)s "
                                        "- %(levelname)s : %(message)s")
             fh.setFormatter(fh_fmt)
@@ -178,7 +179,7 @@ class Trainer:
 
         return loss_dict["loss"]
 
-    def save(self, epoch: int, loss: float) -> None:
+    def save_checkpoint(self, epoch: int, loss: float) -> None:
         """Saves trained model and optimizer to checkpoint file.
 
         Args:
@@ -187,8 +188,8 @@ class Trainer:
         """
 
         # Log
-        self.logger.info(f"Eval loss (epoch={epoch}): {loss}")
-        self.logger.info("Save trained model")
+        self.logger.debug(f"Eval loss (epoch={epoch}): {loss}")
+        self.logger.debug("Save trained model")
 
         # Save model
         state_dict = {
@@ -199,15 +200,6 @@ class Trainer:
         }
         path = self.logdir / f"checkpoint_{epoch}.pt"
         torch.save(state_dict, path)
-
-    def quit(self) -> None:
-        """Post process."""
-
-        self.logger.info("Save data loader")
-        torch.save(self.train_loader, self.logdir / "train_loader.pt")
-        torch.save(self.test_loader, self.logdir / "test_loader.pt")
-
-        self.writer.close()
 
     def save_plot(self, epoch: int) -> None:
         """Plot and save a figure.
@@ -240,8 +232,19 @@ class Trainer:
         plt.savefig(self.logdir / f"fig_{epoch}.png")
         plt.close()
 
+    def quit(self) -> None:
+        """Post process."""
+
+        self.logger.info("Save data loader")
+        torch.save(self.train_loader, self.logdir / "train_loader.pt")
+        torch.save(self.test_loader, self.logdir / "test_loader.pt")
+
+        self.writer.close()
+
     def _base_run(self) -> None:
         """Base running method."""
+
+        self.logger.info("Start experiment")
 
         # Data
         self.load_dataloader(self.hparams["train_dataset_params"],
@@ -257,19 +260,24 @@ class Trainer:
         # Optimizer
         self.optimizer = optim.Adam(self.model.parameters())
 
-        for epoch in range(1, self.hparams["epochs"] + 1):
+        # Run training
+        self.logger.info("Start training")
+        pbar = tqdm.trange(1, self.hparams["epochs"] + 1)
+        postfix = collections.OrderedDict({"train/loss": 0, "test/loss": 0})
+        for epoch in pbar:
             # Training
-            self.train(epoch)
+            train_loss = self.train(epoch)
+            postfix["train/loss"] = train_loss
 
             if epoch % self.hparams["log_save_interval"] == 0:
                 # Calculate test loss
                 test_loss = self.test(epoch)
-
-                # Save trained model
-                self.save(epoch, test_loss)
-
-                # Save plot
+                postfix["test/loss"] = test_loss
+                self.save_checkpoint(epoch, test_loss)
                 self.save_plot(epoch)
+
+            # Update postfix
+            pbar.set_postfix(postfix)
 
         # Post process
         self.quit()
