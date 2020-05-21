@@ -143,26 +143,6 @@ class ConditionalNP(BaseNP):
         self.encoder = Encoder(x_dim, y_dim, r_dim)
         self.decoder = Decoder(x_dim, y_dim, r_dim)
 
-    def forward(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
-                ) -> Tensor:
-        """Forward method.
-
-        Args:
-            x_context (torch.Tensor): x for context, size
-                `(batch_size, num_context, x_dim)`.
-            y_context (torch.Tensor): y for context, size
-                `(batch_size, num_context, y_dim)`.
-            x_target (torch.Tensor): x for target, size
-                `(batch_size, num_target, x_dim)`.
-
-        Returns:
-            mu (torch.Tensor): y queried by target x and encoded
-                representation, size `(batch_size, num_target, y_dim)`.
-        """
-
-        mu, _ = self.query(x_context, y_context, x_target)
-        return mu
-
     def query(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
               ) -> Tuple[Tensor, Tensor]:
         """Query y target.
