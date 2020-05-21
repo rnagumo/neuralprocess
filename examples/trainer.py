@@ -17,7 +17,7 @@ import neuralprocess as npr
 
 
 class Trainer:
-    """Updater class for neural process.
+    """Trainer class for neural process.
 
     Args:
         model (neuralprocess.BaseNP): NP model.
