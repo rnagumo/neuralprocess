@@ -3,7 +3,6 @@
 
 from typing import Tuple, Dict
 
-import torch
 from torch import nn, Tensor
 
 
