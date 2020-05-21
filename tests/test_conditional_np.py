@@ -24,11 +24,11 @@ class TestEncoder(unittest.TestCase):
         x_target = torch.randn(batch_size, num_target, self.x_dim)
 
         # Forward
-        mu, logvar = self.model.query(x_context, y_context, x_target)
+        mu, var = self.model.query(x_context, y_context, x_target)
 
         self.assertTupleEqual(mu.size(), (batch_size, num_target, self.y_dim))
         self.assertTupleEqual(
-            logvar.size(), (batch_size, num_target, self.y_dim))
+            var.size(), (batch_size, num_target, self.y_dim))
 
     def test_loss_func(self):
         # Data

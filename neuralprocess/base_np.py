@@ -47,7 +47,7 @@ class BaseNP(nn.Module):
         Returns:
             mu (torch.Tensor): y queried by target x and encoded
                 representation, size `(batch_size, num_target, y_dim)`.
-            logvar (torch.Tensor): Log variance of y, size
+            var (torch.Tensor): Variance of y, size
                 `(batch_size, num_target, y_dim)`.
         """
 

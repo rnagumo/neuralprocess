@@ -83,7 +83,7 @@ class Decoder(nn.Module):
         )
 
         self.fc_mu = nn.Linear(128, y_dim)
-        self.fc_logvar = nn.Linear(128, y_dim)
+        self.fc_var = nn.Linear(128, y_dim)
 
     def forward(self, x: Tensor, r: Tensor) -> Tuple[Tensor, Tensor]:
         """Forward method.
@@ -97,7 +97,7 @@ class Decoder(nn.Module):
         Returns:
            mu (torch.Tensor): Decoded mean, size
                 `(batch_size, num_points, x_dim)`.
-           logvar (torch.Tensor): Decoded log variance, size
+           var (torch.Tensor): Decoded variance, size
                 `(batch_size, num_points, x_dim)`.
         """
 
@@ -114,13 +114,13 @@ class Decoder(nn.Module):
         # Forward
         h = self.fc(h)
         mu = self.fc_mu(h)
-        logvar = F.softplus(self.fc_logvar(h))
+        var = F.softplus(self.fc_var(h))
 
         # Bring back into original shape
         mu = mu.reshape(batch_size, num_points, -1)
-        logvar = logvar.reshape(batch_size, num_points, -1)
+        var = var.reshape(batch_size, num_points, -1)
 
-        return mu, logvar
+        return mu, var
 
 
 class ConditionalNP(BaseNP):
@@ -158,13 +158,13 @@ class ConditionalNP(BaseNP):
         Returns:
             mu (torch.Tensor): y queried by target x and encoded
                 representation, size `(batch_size, num_target, y_dim)`.
-            logvar (torch.Tensor): Log variance of y, size
+            var (torch.Tensor): Variance of y, size
                 `(batch_size, num_target, y_dim)`.
         """
 
         representation = self.encoder(x_context, y_context)
-        mu, logvar = self.decoder(x_target, representation)
-        return mu, logvar
+        mu, var = self.decoder(x_target, representation)
+        return mu, var
 
     def loss_func(self, x_context: Tensor, y_context: Tensor, x_target: Tensor,
                   y_target: Tensor) -> Dict[str, Tensor]:
@@ -184,12 +184,12 @@ class ConditionalNP(BaseNP):
             loss_dict (dict of [str, torch.Tensor]): Calculated loss.
         """
 
-        mu, logvar = self.query(x_context, y_context, x_target)
+        mu, var = self.query(x_context, y_context, x_target)
 
         # Distribution
-        batch_size, num_target, y_dim = logvar.size()
+        batch_size, num_target, y_dim = var.size()
         cov = (torch.eye(y_dim).repeat(batch_size, num_target, 1, 1)
-               * torch.exp(logvar).unsqueeze(-1))
+               * var.unsqueeze(-1))
         dist = MultivariateNormal(mu, cov)
         log_p = dist.log_prob(y_target).sum()
 

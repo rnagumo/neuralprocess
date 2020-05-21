@@ -211,7 +211,7 @@ class Trainer:
         # Query y_target
         x_ctx, y_ctx, x_tgt, y_tgt = next(iter(self.test_loader))
         with torch.no_grad():
-            mu, logvar = self.model.query(x_ctx, y_ctx, x_tgt)
+            mu, var = self.model.query(x_ctx, y_ctx, x_tgt)
 
         # Plot
         plt.figure(figsize=(10, 6))
@@ -222,8 +222,8 @@ class Trainer:
         plt.plot(x_tgt.squeeze(-1)[0], mu.squeeze(-1)[0], "b",
                  label="Sampled function")
         plt.fill_between(x_tgt.squeeze(-1)[0],
-                         (mu + torch.exp(0.5 * logvar)).squeeze(-1)[0],
-                         (mu - torch.exp(0.5 * logvar)).squeeze(-1)[0],
+                         (mu + var ** 0.5).squeeze(-1)[0],
+                         (mu - var ** 0.5).squeeze(-1)[0],
                          color="b", alpha=0.2, label="1-sigma range")
         plt.legend(loc="upper right")
         plt.title(f"Training results (epoch={epoch})")
