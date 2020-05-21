@@ -200,7 +200,7 @@ class NeuralProcess(BaseNP):
         # Encode latents
         representation = self.encoder(x_context, y_context)
         mu_z, var_z = self.aggregator(representation)
-        z = mu_z + (var_z ** 0.5).exp() * torch.randn(var_z.size())
+        z = mu_z + (var_z ** 0.5) * torch.randn(var_z.size())
 
         # Query
         mu, var = self.decoder(x_target, z)
@@ -227,13 +227,13 @@ class NeuralProcess(BaseNP):
         # Forward
         representation = self.encoder(x_context, y_context)
         mu_z, var_z = self.aggregator(representation)
-        z = mu_z + (var_z ** 0.5).exp() * torch.randn(var_z.size())
+        z = mu_z + (var_z ** 0.5) * torch.randn(var_z.size())
         mu, var = self.decoder(x_target, z)
 
         # Log likelihood
         batch_size, num_target, y_dim = var.size()
         cov = (torch.eye(y_dim).repeat(batch_size, num_target, 1, 1)
-               * torch.exp(var).unsqueeze(-1))
+               * var.unsqueeze(-1))
         dist = MultivariateNormal(mu, cov)
         log_p = dist.log_prob(y_target).sum()
 
