@@ -4,3 +4,4 @@ from .gaussian_process import GaussianProcess
 from .gp_dataset import GPDataset
 from .conditional_np import ConditionalNP
 from .neural_process import NeuralProcess
+from .attentive_np import AttentiveNP
