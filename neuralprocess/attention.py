@@ -142,7 +142,7 @@ class SelfAttention(MultiHeadAttention):
         """Forward method for self-attention.
 
         Args:
-            x (torch.Tensor): Input (query, key, and value).
+            x (torch.Tensor): Input of size `(batch, len_x, x_dim)`.
 
         Returns:
             y (torch.Tensor): Queried Values of size `(batch, len_x, x_dim)`.
