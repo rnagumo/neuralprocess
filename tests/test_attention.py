@@ -23,11 +23,8 @@ class TestScaledDotProductAttention(unittest.TestCase):
         k = torch.ones(batch, len_k, d_k)
         v = torch.ones(batch, len_k, d_v)
 
-        y, attn = self.attention(q, k, v)
+        y = self.attention(q, k, v)
         self.assertTupleEqual(y.size(), (batch, len_q, d_v))
-        self.assertTupleEqual(attn.size(), (batch, len_q, len_k))
-
-        self.assertTrue((attn == 0.25).all())
         self.assertTrue((y == 1).all())
 
     def test_forward_4d(self):
@@ -43,11 +40,8 @@ class TestScaledDotProductAttention(unittest.TestCase):
         k = torch.ones(batch, num, len_k, d_k)
         v = torch.ones(batch, num, len_k, d_v)
 
-        y, attn = self.attention(q, k, v)
+        y = self.attention(q, k, v)
         self.assertTupleEqual(y.size(), (batch, num, len_q, d_v))
-        self.assertTupleEqual(attn.size(), (batch, num, len_q, len_k))
-
-        self.assertTrue((attn == 0.25).all())
         self.assertTrue((y == 1).all())
 
 
@@ -71,10 +65,8 @@ class TestMultiHeadAttention(unittest.TestCase):
         k = torch.ones(batch, len_k, self.k_dim)
         v = torch.ones(batch, len_k, self.v_dim)
 
-        y, attn = self.attention(q, k, v)
+        y = self.attention(q, k, v)
         self.assertTupleEqual(y.size(), (batch, len_q, self.v_dim))
-        self.assertTupleEqual(attn.size(), (batch, self.n_head, len_q, len_k))
-        self.assertTrue((attn == 0.25).all())
 
 
 class TestSelfAttention(unittest.TestCase):
@@ -92,9 +84,8 @@ class TestSelfAttention(unittest.TestCase):
         len_x = 5
         x = torch.ones(batch, len_x, self.x_dim)
 
-        y, attn = self.attention(x)
+        y = self.attention(x)
         self.assertTupleEqual(y.size(), (batch, len_x, self.x_dim))
-        self.assertTupleEqual(attn.size(), (batch, self.n_head, len_x, len_x))
 
 
 if __name__ == "__main__":

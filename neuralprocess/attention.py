@@ -13,8 +13,6 @@ https://github.com/halhorn/deep_dialog_tutorial/blob/master/deepdialog/transform
 https://github.com/CyberZHG/torch-multi-head-attention/blob/master/torch_multi_head_attention/multi_head_attention.py
 """
 
-from typing import Tuple
-
 import torch
 from torch import Tensor, nn
 from torch.nn import functional as F
@@ -27,7 +25,7 @@ class ScaledDotProductAttention(nn.Module):
         super().__init__()
 
     def forward(self, q: Tensor, k: Tensor, v: Tensor
-                ) -> Tuple[Tensor, Tensor]:
+                ) -> Tensor:
         """Forward method to return queried values.
 
         Input tensors' size should be `(batch, len, dim)` or
@@ -40,8 +38,6 @@ class ScaledDotProductAttention(nn.Module):
 
         Returns:
             y (torch.Tensor): Queried value of size `(*, len_q, d_v)`.
-            attn (torch.Tensor): Attention matrix of size
-                `(*, len_q, len_k)`.
         """
 
         d_k = k.size(2)
@@ -49,7 +45,7 @@ class ScaledDotProductAttention(nn.Module):
         attn = F.softmax(attn, dim=-1)
         y = torch.matmul(attn, v)
 
-        return y, attn
+        return y
 
 
 class MultiHeadAttention(nn.Module):
@@ -86,7 +82,7 @@ class MultiHeadAttention(nn.Module):
         self.attention = ScaledDotProductAttention()
 
     def forward(self, q: Tensor, k: Tensor, v: Tensor
-                ) -> Tuple[Tensor, Tensor]:
+                ) -> Tensor:
         """Foward method.
 
         Args:
@@ -96,8 +92,6 @@ class MultiHeadAttention(nn.Module):
 
         Returns:
             y (torch.Tensor): Queried Values of size `(batch, len_q, v_dim)`.
-            attn (torch.Tensor): Attention matrix of size
-                `(batch, n_head, len_q, len_k)`.
         """
 
         size_b, len_q, _ = q.size()
@@ -115,7 +109,7 @@ class MultiHeadAttention(nn.Module):
         v = v.transpose(1, 2)
 
         # Pass through attention
-        y, attn = self.attention(q, k, v)
+        y = self.attention(q, k, v)
 
         # Combine each head: (batch, n_head, len, d) -> (batch, len, n*d)
         y = y.transpose(1, 2).contiguous().view(size_b, len_q, -1)
@@ -123,7 +117,7 @@ class MultiHeadAttention(nn.Module):
         # Linear projection: (batch, len, n*d) -> (batch, len_q, v_dim)
         y = self.fc_y(y)
 
-        return y, attn
+        return y
 
 
 class SelfAttention(MultiHeadAttention):
@@ -138,7 +132,7 @@ class SelfAttention(MultiHeadAttention):
     def __init__(self, x_dim: int, d_x: int, n_head: int):
         super().__init__(x_dim, x_dim, d_x, d_x, n_head)
 
-    def forward(self, x: Tensor) -> Tuple[Tensor, Tensor]:
+    def forward(self, x: Tensor) -> Tensor:
         """Forward method for self-attention.
 
         Args:
@@ -146,8 +140,6 @@ class SelfAttention(MultiHeadAttention):
 
         Returns:
             y (torch.Tensor): Queried Values of size `(batch, len_x, x_dim)`.
-            attn (torch.Tensor): Attention matrix of size
-                `(batch, n_head, len_x, len_x)`.
         """
 
         return super().forward(x, x, x)
