@@ -98,7 +98,7 @@ class StochasticEncoder(nn.Module):
         self.attention = SelfAttention(s_dim, s_dim, n_head)
 
     def forward(self, x: Tensor, y: Tensor) -> Tuple[Tensor, Tensor]:
-        """Forward method f(r|x, y).
+        """Forward method p(z|x, y): p(z|s)f(s|x, y).
 
         Args:
             x (torch.Tensor): x context data, size
@@ -139,7 +139,7 @@ class StochasticEncoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    """Decoder.
+    """Decoder p(y|x, r, z).
 
     Args:
         x_dim (int): Dimension size of x.
@@ -218,6 +218,7 @@ class AttentiveNP(BaseNP):
         encoder_z (StochasticEncoder): Encoder for stochastic latent `z`.
         decoder (Decoder): Decoder for predicting y with representation and
             query.
+        attention (MultiHeadAttention): Cross attention layer.
     """
 
     def __init__(self, x_dim: int, y_dim: int, r_dim: int, s_dim: int,
