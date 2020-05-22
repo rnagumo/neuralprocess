@@ -124,3 +124,30 @@ class MultiHeadAttention(nn.Module):
         y = self.fc_y(y)
 
         return y, attn
+
+
+class SelfAttention(MultiHeadAttention):
+    """Self Attention with multi head module.
+
+    Args:
+        x_dim (int): Dimension of input x.
+        d_k (int): Dimension size of x in attention module.
+        n_head (int): Number of heads.
+    """
+
+    def __init__(self, x_dim: int, d_x: int, n_head: int):
+        super().__init__(x_dim, x_dim, d_x, d_x, n_head)
+
+    def forward(self, x: Tensor) -> Tuple[Tensor, Tensor]:
+        """Forward method for self-attention.
+
+        Args:
+            x (torch.Tensor): Input (query, key, and value).
+
+        Returns:
+            y (torch.Tensor): Queried Values of size `(batch, len_x, x_dim)`.
+            attn (torch.Tensor): Attention matrix of size
+                `(batch, n_head, len_x, len_x)`.
+        """
+
+        return super().forward(x, x, x)

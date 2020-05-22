@@ -77,5 +77,25 @@ class TestMultiHeadAttention(unittest.TestCase):
         self.assertTrue((attn == 0.25).all())
 
 
+class TestSelfAttention(unittest.TestCase):
+
+    def setUp(self):
+        self.x_dim = 3
+        self.d_x = 6
+        self.n_head = 4
+        self.attention = npr.SelfAttention(
+            self.x_dim, self.d_x, self.n_head)
+
+    def test_forward(self):
+        # Data
+        batch = 10
+        len_x = 5
+        x = torch.ones(batch, len_x, self.x_dim)
+
+        y, attn = self.attention(x)
+        self.assertTupleEqual(y.size(), (batch, len_x, self.x_dim))
+        self.assertTupleEqual(attn.size(), (batch, self.n_head, len_x, len_x))
+
+
 if __name__ == "__main__":
     unittest.main()
