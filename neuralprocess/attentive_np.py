@@ -8,6 +8,7 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 from torch.distributions import Normal
 
+from .attention_layer import MultiHeadAttention, SelfAttention
 from .base_np import BaseNP
 
 
@@ -18,9 +19,10 @@ class DeterministicEncoder(nn.Module):
         x_dim (int): Dimension size of x.
         y_dim (int): Dimension size of y.
         r_dim (int): Dimension size of r (deterministic representation).
+        n_head (int): Number of head in self-attention module.
     """
 
-    def __init__(self, x_dim: int, y_dim: int, r_dim: int):
+    def __init__(self, x_dim: int, y_dim: int, r_dim: int, n_head: int):
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -30,6 +32,7 @@ class DeterministicEncoder(nn.Module):
             nn.ReLU(),
             nn.Linear(128, r_dim),
         )
+        self.attention = SelfAttention(r_dim, r_dim, n_head)
 
     def forward(self, x: Tensor, y: Tensor) -> Tensor:
         """Forward method f(r|x, y).
@@ -42,7 +45,7 @@ class DeterministicEncoder(nn.Module):
 
         Returns:
             representation (torch.Tensor): Aggregated representation, size
-                `(batch_size, r_dim)`.
+                `(batch_size, num_context, r_dim)`.
         """
 
         h = torch.cat([x, y], dim=-1)
@@ -57,8 +60,8 @@ class DeterministicEncoder(nn.Module):
         # Bring back into original shape
         h = h.reshape(batch_size, num_context, -1)
 
-        # Aggregate representations for each batch
-        r = h.sum(dim=1)
+        # Self-attention
+        r = self.attention(h)
 
         return r
 
@@ -75,9 +78,11 @@ class StochasticEncoder(nn.Module):
         y_dim (int): Dimension size of y.
         s_dim (int): Dimension size of s (deterministic representation).
         z_dim (int): Dimension size of z (stochastic latent).
+        n_head (int): Number of head in self-attention module.
     """
 
-    def __init__(self, x_dim: int, y_dim: int, s_dim: int, z_dim: int):
+    def __init__(self, x_dim: int, y_dim: int, s_dim: int, z_dim: int,
+                 n_head: int):
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -89,6 +94,8 @@ class StochasticEncoder(nn.Module):
         )
         self.fc_mu = nn.Linear(s_dim, z_dim)
         self.fc_var = nn.Linear(s_dim, z_dim)
+
+        self.attention = SelfAttention(s_dim, s_dim, n_head)
 
     def forward(self, x: Tensor, y: Tensor) -> Tuple[Tensor, Tensor]:
         """Forward method f(r|x, y).
@@ -118,8 +125,11 @@ class StochasticEncoder(nn.Module):
         # Bring back into original shape
         h = h.reshape(batch_size, num_context, -1)
 
+        # Self-attention
+        s = self.attention(h)
+
         # Aggregate representations for each batch
-        s = h.sum(dim=1)
+        s = s.sum(dim=1)
 
         # Mean and variance of N(mu(s), var(s)^0.5)
         mu = self.fc_mu(s)
@@ -159,7 +169,7 @@ class Decoder(nn.Module):
             x (torch.Tensor): x context data, size
                 `(batch_size, num_points, x_dim)`.
             r (torch.Tensor): Deterministic representation, size
-                `(batch_size, r_dim)`.
+                `(batch_size, num_points, r_dim)`.
             z (torch.Tensor): Stochastic latents, size `(batch_size, z_dim)`.
 
         Returns:
@@ -173,7 +183,6 @@ class Decoder(nn.Module):
         batch_size, num_points, _ = x.size()
 
         # Concat inputs
-        r = r.unsqueeze(1).repeat(1, num_points, 1)
         z = z.unsqueeze(1).repeat(1, num_points, 1)
         h = torch.cat([x, r, z], dim=-1)
 
@@ -201,6 +210,7 @@ class AttentiveNP(BaseNP):
         r_dim (int): Dimension size of r (deterministic representation).
         s_dim (int): Dimension size of s (deterministic representation).
         z_dim (int): Dimension size of z (stochastic latent).
+        n_head (int): Number of head in self-attention module.
 
     Attributes:
         encoder_r (DeterministicEncoder): Encoder for deterministic
@@ -211,12 +221,13 @@ class AttentiveNP(BaseNP):
     """
 
     def __init__(self, x_dim: int, y_dim: int, r_dim: int, s_dim: int,
-                 z_dim: int):
+                 z_dim: int, n_head: int):
         super().__init__()
 
-        self.encoder_r = DeterministicEncoder(x_dim, y_dim, r_dim)
-        self.encoder_z = StochasticEncoder(x_dim, y_dim, s_dim, z_dim)
+        self.encoder_r = DeterministicEncoder(x_dim, y_dim, r_dim, n_head)
+        self.encoder_z = StochasticEncoder(x_dim, y_dim, s_dim, z_dim, n_head)
         self.decoder = Decoder(x_dim, y_dim, r_dim, z_dim)
+        self.attention = MultiHeadAttention(x_dim, r_dim, x_dim, r_dim, n_head)
 
     def query(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
               ) -> Tuple[Tensor, Tensor]:
@@ -238,7 +249,8 @@ class AttentiveNP(BaseNP):
         """
 
         # Encode latents
-        r = self.encoder_r(x_context, y_context)
+        r_c = self.encoder_r(x_context, y_context)
+        r = self.attention(x_target, x_context, r_c)
         mu_z, var_z = self.encoder_z(x_context, y_context)
         z = mu_z + (var_z ** 0.5) * torch.randn(var_z.size())
 
@@ -265,7 +277,8 @@ class AttentiveNP(BaseNP):
         """
 
         # Forward
-        r = self.encoder_r(x_context, y_context)
+        r_c = self.encoder_r(x_context, y_context)
+        r = self.attention(x_target, x_context, r_c)
         mu_z_c, var_z_c = self.encoder_z(x_context, y_context)
         z = mu_z_c + (var_z_c ** 0.5) * torch.randn(var_z_c.size())
         mu, var = self.decoder(x_target, r, z)

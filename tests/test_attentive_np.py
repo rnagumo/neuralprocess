@@ -14,8 +14,10 @@ class TestAttentiveNP(unittest.TestCase):
         self.r_dim = 4
         self.s_dim = 5
         self.z_dim = 4
+        self.n_head = 6
         self.model = npr.AttentiveNP(
-            self.x_dim, self.y_dim, self.r_dim, self.s_dim, self.z_dim)
+            self.x_dim, self.y_dim, self.r_dim, self.s_dim, self.z_dim,
+            self.n_head)
 
     def test_query(self):
         # Data
