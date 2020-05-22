@@ -68,6 +68,28 @@ class TestMultiHeadAttention(unittest.TestCase):
         y = self.attention(q, k, v)
         self.assertTupleEqual(y.size(), (batch, len_q, self.v_dim))
 
+    def test_size_error(self):
+        # Data
+        batch = 10
+        len_q = 5
+        len_k = 4
+
+        # Test case 1. q_dim != k_dim
+        q = torch.ones(batch, len_q, self.k_dim)
+        k = torch.ones(batch, len_k, self.k_dim + 1)
+        v = torch.ones(batch, len_k, self.v_dim)
+
+        with self.assertRaises(ValueError):
+            _ = self.attention(q, k, v)
+
+        # Test case 2. len_k != len_v
+        q = torch.ones(batch, len_q, self.k_dim)
+        k = torch.ones(batch, len_k, self.k_dim)
+        v = torch.ones(batch, len_k + 1, self.v_dim)
+
+        with self.assertRaises(ValueError):
+            _ = self.attention(q, k, v)
+
 
 class TestSelfAttention(unittest.TestCase):
 

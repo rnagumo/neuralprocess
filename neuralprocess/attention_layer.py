@@ -94,6 +94,14 @@ class MultiHeadAttention(nn.Module):
             y (torch.Tensor): Queried Values of size `(batch, len_q, v_dim)`.
         """
 
+        if q.size(2) != k.size(2):
+            raise ValueError("Dimension of queue and key should be same: "
+                             f"queue size = {q.size()}, key size = {k.size()}")
+
+        if k.size(1) != v.size(1):
+            raise ValueError("Length of key and value should be same: "
+                             f"key size = {k.size()}, value size = {v.size()}")
+
         size_b, len_q, _ = q.size()
         len_k = k.size(1)
 
