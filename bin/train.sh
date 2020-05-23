@@ -13,4 +13,4 @@ export EXPERIMENT_NAME=${MODEL_NAME}
 export CONFIG_PATH=./examples/config_1d.json
 
 python3 ./examples/run.py --model ${MODEL_NAME} --seed ${SEED} \
-    --epochs 200000 --log-save-interval 20000
+    --epochs 20000 --log-save-interval 2000
