@@ -9,9 +9,6 @@ from torch import nn, Tensor
 class BaseNP(nn.Module):
     """Base Neural Process class."""
 
-    def __init__(self):
-        super().__init__()
-
     def forward(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
                 ) -> Tensor:
         """Forward method.

@@ -21,9 +21,6 @@ from torch.nn import functional as F
 class ScaledDotProductAttention(nn.Module):
     """Scaled Dot-Product Attention."""
 
-    def __init__(self):
-        super().__init__()
-
     def forward(self, q: Tensor, k: Tensor, v: Tensor
                 ) -> Tensor:
         """Forward method to return queried values.
