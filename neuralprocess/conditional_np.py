@@ -96,9 +96,9 @@ class Decoder(nn.Module):
 
         Returns:
            mu (torch.Tensor): Decoded mean, size
-                `(batch_size, num_points, x_dim)`.
+                `(batch_size, num_points, y_dim)`.
            var (torch.Tensor): Decoded variance, size
-                `(batch_size, num_points, x_dim)`.
+                `(batch_size, num_points, y_dim)`.
         """
 
         # Data size
@@ -108,9 +108,6 @@ class Decoder(nn.Module):
         r = r.unsqueeze(1).repeat(1, num_points, 1)
         h = torch.cat([x, r], dim=-1)
 
-        # Reshape tensor: (batch, num, dim) -> (batch * num, dim)
-        h = h.reshape(batch_size * num_points, -1)
-
         # Forward
         h = self.fc(h)
         mu = self.fc_mu(h)
@@ -118,10 +115,6 @@ class Decoder(nn.Module):
 
         # Bounds variance > 0.01 (original code: sigma > 0.1)
         var = 0.01 + 0.99 * var
-
-        # Bring back into original shape
-        mu = mu.reshape(batch_size, num_points, -1)
-        var = var.reshape(batch_size, num_points, -1)
 
         return mu, var
 
