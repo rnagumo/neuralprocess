@@ -93,7 +93,7 @@ class Decoder(nn.Module):
         """
 
         # Data size
-        batch_size, num_points, _ = x.size()
+        num_points = x.size(1)
 
         # Concat inputs
         r = r.unsqueeze(1).repeat(1, num_points, 1)
