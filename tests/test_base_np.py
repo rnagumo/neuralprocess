@@ -34,6 +34,17 @@ class TestKLDivergence(unittest.TestCase):
         self.assertTupleEqual(kl.size(), (batch, num_points))
         self.assertTrue((kl >= 0).all())
 
+    def test_kl_same(self):
+        batch = 10
+        x_dim = 5
+
+        mu0 = torch.randn(batch, x_dim)
+        var0 = torch.rand(batch, x_dim) + 0.01
+
+        kl = npr.kl_divergence_normal(mu0, var0, mu0, var0)
+        self.assertTupleEqual(kl.size(), (batch,))
+        self.assertTrue((kl == 0).all())
+
 
 if __name__ == "__main__":
     unittest.main()
