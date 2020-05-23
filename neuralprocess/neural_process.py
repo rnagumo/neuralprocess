@@ -53,7 +53,8 @@ class Encoder(nn.Module):
         h = torch.cat([x, y], dim=-1)
         h = self.fc(h)
 
-        # Aggregate representations for each batch
+        # Aggregate representations for all contexts per batch and dimension.
+        # (batch_size, num_context, r_dim) -> (batch_size, r_dim)
         r = h.sum(dim=1)
 
         # Mu and var of N(z|mu(r), var(r)^0.5)

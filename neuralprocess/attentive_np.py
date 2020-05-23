@@ -106,7 +106,8 @@ class StochasticEncoder(nn.Module):
         h = self.fc(h)
         s = self.attention(h)
 
-        # Aggregate representations for each batch
+        # Aggregate representations for all contexts per batch and dimension.
+        # (batch_size, num_context, s_dim) -> (batch_size, s_dim)
         s = s.sum(dim=1)
 
         # Mean and variance of N(mu(s), var(s)^0.5)
@@ -220,9 +221,11 @@ class AttentiveNP(BaseNP):
                 `(batch_size, num_target, y_dim)`.
         """
 
-        # Encode latents
+        # Encode representations
         r_c = self.encoder_r(x_context, y_context)
         r = self.attention(x_target, x_context, r_c)
+
+        # Sample global latents
         mu_z, var_z = self.encoder_z(x_context, y_context)
         z = mu_z + (var_z ** 0.5) * torch.randn(var_z.size())
 
