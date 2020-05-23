@@ -8,7 +8,7 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 from torch.distributions import Normal
 
-from .base_np import BaseNP
+from .base_np import BaseNP, kl_divergence_normal
 
 
 class Encoder(nn.Module):
@@ -202,18 +202,16 @@ class NeuralProcess(BaseNP):
         z = mu_z_c + (var_z_c ** 0.5) * torch.randn(var_z_c.size())
         mu, var = self.decoder(x_target, z)
 
-        # Log likelihood
+        # Negative Log likelihood
         dist = Normal(mu, var ** 0.5)
-        log_p = dist.log_prob(y_target).sum()
+        nll = -dist.log_prob(y_target).sum()
 
         # KL divergence KL(N(mu_z_t, var_z_t^0.5) || N(mu_z_c, var_z_c^0.5))
         mu_z_t, var_z_t = self.encoder(x_target, y_target)
-        mu_diff = mu_z_c - mu_z_t
-        kl_div = ((var_z_t / var_z_c).sum(1)
-                  + (mu_diff / var_z_c * mu_diff).sum(1) - mu_z_c.size(1)
-                  + (var_z_c.prod(1) / var_z_t.prod(1)).log()).sum() * 0.5
+        kl_div = kl_divergence_normal(mu_z_t, var_z_t, mu_z_c, var_z_c)
+        kl_div = kl_div.sum()
 
         # ELBO loss
-        loss = -log_p + kl_div
+        loss = nll + kl_div
 
-        return {"loss": loss, "logp_loss": -log_p, "kl_loss": kl_div}
+        return {"loss": loss, "nll": nll, "kl": kl_div}

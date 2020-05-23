@@ -49,10 +49,10 @@ class TestNeuralProcess(unittest.TestCase):
         self.assertIsInstance(loss_dict, dict)
         self.assertIsInstance(loss_dict["loss"], torch.Tensor)
         self.assertTrue(loss_dict["loss"] > 0)
-        self.assertIsInstance(loss_dict["logp_loss"], torch.Tensor)
-        self.assertTrue(loss_dict["logp_loss"] > 0)
-        self.assertIsInstance(loss_dict["kl_loss"], torch.Tensor)
-        self.assertTrue(loss_dict["kl_loss"] > 0)
+        self.assertIsInstance(loss_dict["nll"], torch.Tensor)
+        self.assertTrue(loss_dict["nll"] > 0)
+        self.assertIsInstance(loss_dict["kl"], torch.Tensor)
+        self.assertTrue(loss_dict["kl"] > 0)
 
     def test_forward(self):
         # Data
