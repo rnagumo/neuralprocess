@@ -7,7 +7,7 @@ SEED=${2:-0}
 
 # Log path
 export LOGDIR=./logs/
-export EXPERIMENT_NAME=tmp
+export EXPERIMENT_NAME=${MODEL_NAME}
 
 # Config for training
 export CONFIG_PATH=./examples/config_1d.json
