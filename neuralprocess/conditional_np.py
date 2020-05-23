@@ -46,16 +46,7 @@ class Encoder(nn.Module):
         """
 
         h = torch.cat([x, y], dim=-1)
-
-        # Reshape tensor: (batch, num, dim) -> (batch * num, dim)
-        batch_size, num_context, h_dim = h.size()
-        h = h.reshape(batch_size * num_context, h_dim)
-
-        # Pass through MLP
         h = self.fc(h)
-
-        # Bring back into original shape
-        h = h.reshape(batch_size, num_context, -1)
 
         # Aggregate representations for each batch
         r = h.sum(dim=1)
