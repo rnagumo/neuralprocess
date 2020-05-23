@@ -57,6 +57,10 @@ class BaseNP(nn.Module):
                   y_target: Tensor) -> Dict[str, Tensor]:
         """Loss function for the negative conditional log probability.
 
+        **Note**
+
+        Returned `loss_dict` must include `loss` key-value.
+
         Args:
             x_context (torch.Tensor): x for context, size
                 `(batch_size, num_context, x_dim)`.
