@@ -51,16 +51,7 @@ class Encoder(nn.Module):
         """
 
         h = torch.cat([x, y], dim=-1)
-
-        # Reshape tensor: (batch, num, dim) -> (batch * num, dim)
-        batch_size, num_context, h_dim = h.size()
-        h = h.reshape(batch_size * num_context, h_dim)
-
-        # Pass through MLP
         h = self.fc(h)
-
-        # Bring back into original shape
-        h = h.reshape(batch_size, num_context, -1)
 
         # Aggregate representations for each batch
         r = h.sum(dim=1)
@@ -110,23 +101,16 @@ class Decoder(nn.Module):
         """
 
         # Data size
-        batch_size, num_points, _ = x.size()
+        num_points = x.size(1)
 
         # Concat inputs
         z = z.unsqueeze(1).repeat(1, num_points, 1)
         h = torch.cat([x, z], dim=-1)
 
-        # Reshape tensor: (batch, num, dim) -> (batch * num, dim)
-        h = h.reshape(batch_size * num_points, -1)
-
         # Forward
         h = self.fc(h)
         mu = self.fc_mu(h)
         var = F.softplus(self.fc_var(h))
-
-        # Bring back into original shape
-        mu = mu.reshape(batch_size, num_points, -1)
-        var = var.reshape(batch_size, num_points, -1)
 
         return mu, var
 
