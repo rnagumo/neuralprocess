@@ -44,7 +44,7 @@ class DeterministicEncoder(nn.Module):
                 `(batch_size, num_context, y_dim)`.
 
         Returns:
-            representation (torch.Tensor): Aggregated representation, size
+            r (torch.Tensor): Aggregated representation, size
                 `(batch_size, num_context, r_dim)`.
         """
 
@@ -98,7 +98,7 @@ class StochasticEncoder(nn.Module):
         Returns:
             mu (torch.Tensor): Sampled aggregated mean, size
                 `(batch_size, z_dim)`.
-           var (torch.Tensor): Sampled aggregated variance, size
+            var (torch.Tensor): Sampled aggregated variance, size
                 `(batch_size, z_dim)`.
         """
 
@@ -151,9 +151,9 @@ class Decoder(nn.Module):
             z (torch.Tensor): Stochastic latents, size `(batch_size, z_dim)`.
 
         Returns:
-           mu (torch.Tensor): Decoded mean, size
+            mu (torch.Tensor): Decoded mean, size
                 `(batch_size, num_points, x_dim)`.
-           var (torch.Tensor): Decoded variance, size
+            var (torch.Tensor): Decoded variance, size
                 `(batch_size, num_points, x_dim)`.
         """
 

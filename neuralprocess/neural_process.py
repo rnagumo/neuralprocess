@@ -46,7 +46,7 @@ class Encoder(nn.Module):
         Returns:
             mu (torch.Tensor): Aggregated mean, size
                 `(batch_size, z_dim)`.
-           var (torch.Tensor): Aggregated variance, size
+            var (torch.Tensor): Aggregated variance, size
                 `(batch_size, z_dim)`.
         """
 
@@ -94,9 +94,9 @@ class Decoder(nn.Module):
             z (torch.Tensor): Stochastic latents, size `(batch_size, z_dim)`.
 
         Returns:
-           mu (torch.Tensor): Decoded mean, size
+            mu (torch.Tensor): Decoded mean, size
                 `(batch_size, num_points, x_dim)`.
-           var (torch.Tensor): Decoded variance, size
+            var (torch.Tensor): Decoded variance, size
                 `(batch_size, num_points, x_dim)`.
         """
 

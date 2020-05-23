@@ -41,7 +41,7 @@ class Encoder(nn.Module):
                 `(batch_size, num_context, y_dim)`.
 
         Returns:
-            representation (torch.Tensor): Aggregated representation, size
+            r (torch.Tensor): Aggregated representation, size
                 `(batch_size, r_dim)`.
         """
 
@@ -95,9 +95,9 @@ class Decoder(nn.Module):
                 `(batch_size, r_dim)`.
 
         Returns:
-           mu (torch.Tensor): Decoded mean, size
+            mu (torch.Tensor): Decoded mean, size
                 `(batch_size, num_points, y_dim)`.
-           var (torch.Tensor): Decoded variance, size
+            var (torch.Tensor): Decoded variance, size
                 `(batch_size, num_points, y_dim)`.
         """
 
