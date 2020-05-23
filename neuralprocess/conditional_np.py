@@ -116,6 +116,9 @@ class Decoder(nn.Module):
         mu = self.fc_mu(h)
         var = F.softplus(self.fc_var(h))
 
+        # Bounds variance > 0.01 (original code: sigma > 0.1)
+        var = 0.01 + 0.99 * var
+
         # Bring back into original shape
         mu = mu.reshape(batch_size, num_points, -1)
         var = var.reshape(batch_size, num_points, -1)
