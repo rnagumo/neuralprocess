@@ -2,6 +2,8 @@
 """Trainer class."""
 
 import collections
+import copy
+import json
 import logging
 import pathlib
 import time
@@ -201,6 +203,15 @@ class Trainer:
         path = self.logdir / f"checkpoint_{epoch}.pt"
         torch.save(state_dict, path)
 
+    def save_configs(self) -> None:
+        """Saves setting including condig and args in json format."""
+
+        config = copy.deepcopy(self.hparams)
+        config["logdir"] = str(self.logdir)
+
+        with (self.logdir / "config.json").open("w") as f:
+            json.dump(config, f)
+
     def save_plot(self, epoch: int) -> None:
         """Plot and save a figure.
 
@@ -238,6 +249,7 @@ class Trainer:
         torch.save(self.train_loader, self.logdir / "train_loader.pt")
         torch.save(self.test_loader, self.logdir / "test_loader.pt")
 
+        self.save_configs()
         self.writer.close()
 
     def _base_run(self) -> None:
