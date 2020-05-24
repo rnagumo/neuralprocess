@@ -55,7 +55,7 @@ class Encoder(nn.Module):
 
         # Aggregate representations for all contexts per batch and dimension.
         # (batch_size, num_context, r_dim) -> (batch_size, r_dim)
-        r = h.sum(dim=1)
+        r = h.mean(dim=1)
 
         # Mu and var of N(z|mu(r), var(r)^0.5)
         mu = self.fc_mu(r)

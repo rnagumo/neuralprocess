@@ -108,7 +108,7 @@ class StochasticEncoder(nn.Module):
 
         # Aggregate representations for all contexts per batch and dimension.
         # (batch_size, num_context, s_dim) -> (batch_size, s_dim)
-        s = s.sum(dim=1)
+        s = s.mean(dim=1)
 
         # Mean and variance of N(mu(s), var(s)^0.5)
         mu = self.fc_mu(s)
