@@ -29,8 +29,8 @@ def main():
         config = json.load(f)
 
     # Path
-    logdir = pathlib.Path(os.getenv("LOGDIR", "./logs/"),
-                          os.getenv("EXPERIMENT_NAME", "tmp"))
+    logdir = str(pathlib.Path(os.getenv("LOGDIR", "./logs/"),
+                              os.getenv("EXPERIMENT_NAME", "tmp")))
 
     # Cuda setting
     use_cuda = torch.cuda.is_available() and args.cuda != "null"
@@ -56,7 +56,6 @@ def main():
     params = {
         "logdir": logdir,
         "gpus": gpus,
-        "logdir": logdir,
     }
     params.update(config)
     params.update(vars(args))
