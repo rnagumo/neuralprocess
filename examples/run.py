@@ -66,11 +66,16 @@ def main():
 
 def init_args():
     parser = argparse.ArgumentParser(description="NP training")
-    parser.add_argument("--model", type=str, default="cnp")
-    parser.add_argument("--cuda", type=str, default="0")
-    parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--epochs", type=int, default=10)
-    parser.add_argument("--log-save-interval", type=int, default=10)
+    parser.add_argument("--model", type=str, default="cnp",
+                        help="Trained model name.")
+    parser.add_argument("--cuda", type=str, default="0",
+                        help="Number of CUDA device. 'null' means cpu device.")
+    parser.add_argument("--seed", type=int, default=0,
+                        help="Random seed.")
+    parser.add_argument("--epochs", type=int, default=10,
+                        help="Number of training epochs.")
+    parser.add_argument("--log-save-interval", type=int, default=10,
+                        help="Interval epochs of saving logs.")
 
     return parser.parse_args()
 
