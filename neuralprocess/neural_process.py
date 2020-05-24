@@ -62,7 +62,7 @@ class Encoder(nn.Module):
         var = F.softplus(self.fc_var(r))
 
         # Bounds variance > 0.01 (original code: sigma > 0.1)
-        var += 0.01
+        var = var + 0.01
 
         return mu, var
 
@@ -117,7 +117,7 @@ class Decoder(nn.Module):
         var = F.softplus(self.fc_var(h))
 
         # Bounds variance > 0.01 (original code: sigma > 0.1)
-        var += 0.01
+        var = var + 0.01
 
         return mu, var
 
