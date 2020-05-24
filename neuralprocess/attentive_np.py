@@ -260,12 +260,12 @@ class AttentiveNP(BaseNP):
 
         # Negative Log likelihood
         dist = Normal(mu, var ** 0.5)
-        nll = -dist.log_prob(y_target).sum()
+        nll = -dist.log_prob(y_target).mean()
 
         # KL divergence KL(N(mu_z_t, var_z_t^0.5) || N(mu_z_c, var_z_c^0.5))
         mu_z_t, var_z_t = self.encoder_z(x_target, y_target)
         kl_div = kl_divergence_normal(mu_z_t, var_z_t, mu_z_c, var_z_c)
-        kl_div = kl_div.sum()
+        kl_div = kl_div.mean()
 
         # ELBO loss
         loss = nll + kl_div

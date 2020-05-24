@@ -176,6 +176,6 @@ class ConditionalNP(BaseNP):
 
         # Log likelihood
         dist = Normal(mu, var ** 0.5)
-        log_p = dist.log_prob(y_target).sum()
+        log_p = dist.log_prob(y_target).mean()
 
         return {"loss": -log_p}
