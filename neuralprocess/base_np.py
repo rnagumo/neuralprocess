@@ -3,6 +3,8 @@
 
 from typing import Tuple, Dict
 
+import math
+
 from torch import nn, Tensor
 
 
@@ -100,3 +102,24 @@ def kl_divergence_normal(mu0: Tensor, var0: Tensor, mu1: Tensor, var1: Tensor
           + (var1.prod(-1) / var0.prod(-1)).log()) * 0.5
 
     return kl
+
+
+def gaussian_nll(x: Tensor, mu: Tensor, var: Tensor, reduce: bool = True
+                 ) -> Tensor:
+    """Negative log likelihood for 1-D Normal distribution.
+
+    Args:
+        mu (torch.Tensor): Mean vector.
+        var (torch.Tensor): Variance vector.
+        reduce (bool, optional): If `True`, sum calculated loss for
+            dimensionwise.
+
+    Returns:
+        nll (torch.Tensor): Calculated nll for each data.
+    """
+
+    nll = 0.5 * ((2 * math.pi * var).log() + (x - mu) ** 2 / var)
+
+    if reduce:
+        return nll.sum(-1)
+    return nll
