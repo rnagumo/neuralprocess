@@ -1,5 +1,9 @@
 
-"""Neural Process."""
+"""Attentive Neural Process.
+
+H. Kim et al., "Attentive Neural Processes".
+http://arxiv.org/abs/1901.05761
+"""
 
 from typing import Tuple, Dict
 

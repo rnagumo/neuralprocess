@@ -1,5 +1,9 @@
 
-"""Neural Process."""
+"""Neural Process.
+
+M. Garnelo et al., "Neural Processes".
+http://arxiv.org/abs/1807.01622
+"""
 
 from typing import Tuple, Dict
 

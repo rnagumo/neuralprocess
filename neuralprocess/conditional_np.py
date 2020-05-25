@@ -1,5 +1,9 @@
 
-"""Conditional Neural Process."""
+"""Conditional Neural Process.
+
+M. Garnelo et al., "Conditional Neural Processes".
+http://arxiv.org/abs/1807.01613
+"""
 
 from typing import Tuple, Dict
 
