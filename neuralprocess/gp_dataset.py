@@ -80,16 +80,16 @@ class GPDataset(torch.utils.data.Dataset):
 
         # Sample input x
         if self.train:
-            # For training, sample random points
+            # For training, sample random points in range of [x_lb, x_ub]
             x = torch.rand(self.batch_size, num_context + num_target,
                            self.x_dim)
             x = x * (x_ub - x_lb) + x_lb
         else:
-            # For test, sample evenly distributed array for plot
-            num_points = max(num_context, num_target)
+            # For test, sample uniformly distributed array in range of
+            # [x_lb, x_ub] for target dataset
 
             # Uniformly distributed x
-            x = torch.arange(x_lb, x_ub, (x_ub - x_lb) / num_points)
+            x = torch.arange(x_lb, x_ub, (x_ub - x_lb) / num_target)
 
             # Expand x_dim, size (num_points, x_dim)
             x = x.view(-1, 1).repeat(1, self.x_dim)
@@ -111,22 +111,24 @@ class GPDataset(torch.utils.data.Dataset):
             self.y_target = y[:, num_context:]
         else:
             # For context dataset, sample random data points from uniformly
-            # distributed x and y
+            # distributed x_target and y_target
             _x_context = torch.empty(
                 self.batch_size, num_context, self.x_dim)
             _y_context = torch.empty(
                 self.batch_size, num_context, self.y_dim)
+
+            # Random sampling for each batch
             for i in range(self.batch_size):
-                indices = torch.randperm(max(num_context, num_target))
-                _x_context[i] = x[i, indices[:num_context]]
-                _y_context[i] = y[i, indices[:num_context]]
+                indices = torch.randint(0, num_target, (num_context,))
+                _x_context[i] = x[i, indices]
+                _y_context[i] = y[i, indices]
 
             self.x_context = _x_context
             self.y_context = _y_context
 
             # Target dataset
-            self.x_target = x[:, :num_target]
-            self.y_target = y[:, :num_target]
+            self.x_target = x
+            self.y_target = y
 
     def __getitem__(self, index: int) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
         """Gets item with specified index.
