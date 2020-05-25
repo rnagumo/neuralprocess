@@ -225,7 +225,12 @@ class Trainer:
         # Query y_target
         x_ctx, y_ctx, x_tgt, y_tgt = next(iter(self.test_loader))
         with torch.no_grad():
-            mu, var = self.model.query(x_ctx, y_ctx, x_tgt)
+            data = (x_ctx.to(self.device), y_ctx.to(self.device),
+                    x_tgt.to(self.device))
+            mu, var = self.model.query(*data)
+
+        mu = mu.cpu()
+        var = var.cpu()
 
         # Plot
         plt.figure(figsize=(10, 6))
