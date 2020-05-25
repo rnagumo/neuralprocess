@@ -29,10 +29,10 @@ class GaussianProcess(torch.nn.Module):
         self._y_train = None
 
         # Check parameters
-        if self.l2_scale <= 0:
+        if l2_scale <= 0:
             raise ValueError("L2 scale parameter should be >0")
 
-        if self.sigma <= 0:
+        if sigma <= 0:
             raise ValueError("Sigma should be >0")
 
     def forward(self, x: Tensor) -> Tensor:
@@ -192,3 +192,16 @@ class GaussianProcess(torch.nn.Module):
         y = chol.matmul(torch.randn(batch_size, num_points, y_dim)) + mean
 
         return y
+
+    def resample_params(self, l2_scale: float = 1.0, sigma: float = 1.0,
+                        eps: float = 1e-2) -> None:
+        """Resamples `l2_scale` and `sigma` params.
+
+        Args:
+            l2_scale (float): Upper bounds of `l2_scale` value.
+            sigma (float): Upper bounds of `sigma` value.
+            eps (float): Lower bounds of sampled values.
+        """
+
+        self.l2_scale = torch.rand((1,)).item() * l2_scale + eps
+        self.sigma = torch.rand((1,)).item() * sigma + eps

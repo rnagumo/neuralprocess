@@ -132,6 +132,15 @@ class TestGaussianProcess(unittest.TestCase):
         y_sample = self.model.sample(x_sample)
         self.assertTupleEqual(y_sample.size(), (batch_size, num_points, y_dim))
 
+    def test_resample_params(self):
+        self.model.resample_params()
+        self.assertTrue(0 < self.model.l2_scale < 1.01)
+        self.assertTrue(0 < self.model.sigma < 1.01)
+
+        self.model.resample_params(l2_scale=2.0, sigma=3.0, eps=1.0)
+        self.assertTrue(1.0 < self.model.l2_scale < 3.0)
+        self.assertTrue(1.0 < self.model.sigma < 4.0)
+
 
 if __name__ == "__main__":
     unittest.main()

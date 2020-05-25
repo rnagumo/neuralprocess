@@ -72,7 +72,8 @@ class GPDataset(torch.utils.data.Dataset):
         distributions. Therefore, these two values might be changed at each
         time this function is called.
 
-        * Target dataset includes context dataset, that is, C in T.
+        * Target dataset includes context dataset, that is, context is a
+        subset of target.
 
         Args:
             num_context_min (int, optional): Minimum value of number of context
