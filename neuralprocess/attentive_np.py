@@ -115,7 +115,7 @@ class StochasticEncoder(nn.Module):
 
         # Mean and variance of N(mu(s), var(s)^0.5)
         mu = self.fc_mu(s)
-        var = F.softplus(self.fc_var(s))
+        var = 0.1 + 0.9 * torch.sigmoid(self.fc_var(s))
 
         return mu, var
 
@@ -171,7 +171,7 @@ class Decoder(nn.Module):
         # Forward
         h = self.fc(h)
         mu = self.fc_mu(h)
-        var = F.softplus(self.fc_var(h))
+        var = 0.1 + 0.9 * torch.sigmoid(self.fc_var(h))
 
         return mu, var
 
