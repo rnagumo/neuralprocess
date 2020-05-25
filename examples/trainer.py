@@ -257,7 +257,6 @@ class Trainer:
         torch.save(self.train_loader, self.logdir / "train_loader.pt")
         torch.save(self.test_loader, self.logdir / "test_loader.pt")
 
-        self.save_configs()
         self.writer.close()
 
     def _base_run(self) -> None:
@@ -299,6 +298,7 @@ class Trainer:
             pbar.set_postfix(postfix)
 
         # Post process
+        self.save_configs()
         self.quit()
 
     def run(self) -> None:
