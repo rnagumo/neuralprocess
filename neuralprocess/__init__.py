@@ -1,5 +1,5 @@
 
-from .base_np import BaseNP, kl_divergence_normal, gaussian_nll
+from .base_np import BaseNP, kl_divergence_normal, nll_normal
 from .gaussian_process import GaussianProcess
 from .gp_dataset import GPDataset
 from .conditional_np import ConditionalNP

@@ -45,7 +45,7 @@ class TestKLDivergence(unittest.TestCase):
         self.assertTupleEqual(kl.size(), (batch,))
         self.assertTrue((kl == 0).all())
 
-    def test_gaussian_nll(self):
+    def test_nll_normal(self):
         batch = 10
         x_dim = 5
 
@@ -53,7 +53,7 @@ class TestKLDivergence(unittest.TestCase):
         var = torch.rand(batch, x_dim) + 0.01
         x = torch.randn(batch, x_dim)
 
-        nll = npr.gaussian_nll(x, mu, var)
+        nll = npr.nll_normal(x, mu, var)
         self.assertTupleEqual(nll.size(), (batch,))
         self.assertTrue((nll >= 0).all())
 

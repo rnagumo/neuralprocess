@@ -11,7 +11,7 @@ import torch
 from torch import Tensor, nn
 from torch.nn import functional as F
 
-from .base_np import BaseNP, kl_divergence_normal, gaussian_nll
+from .base_np import BaseNP, kl_divergence_normal, nll_normal
 
 
 class Encoder(nn.Module):
@@ -192,7 +192,7 @@ class NeuralProcess(BaseNP):
 
         # Negative Log likelihood
         mu, var = self.decoder(x_target, z)
-        nll = gaussian_nll(y_target, mu, var)
+        nll = nll_normal(y_target, mu, var)
         nll = nll.mean()
 
         # KL divergence KL[N(mu_z_t, var_z_t^0.5) || N(mu_z_c, var_z_c^0.5)]

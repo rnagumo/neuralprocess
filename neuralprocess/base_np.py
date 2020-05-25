@@ -104,8 +104,8 @@ def kl_divergence_normal(mu0: Tensor, var0: Tensor, mu1: Tensor, var1: Tensor
     return kl
 
 
-def gaussian_nll(x: Tensor, mu: Tensor, var: Tensor, reduce: bool = True
-                 ) -> Tensor:
+def nll_normal(x: Tensor, mu: Tensor, var: Tensor, reduce: bool = True
+               ) -> Tensor:
     """Negative log likelihood for 1-D Normal distribution.
 
     Args:

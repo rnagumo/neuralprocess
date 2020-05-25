@@ -12,7 +12,7 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 
 from .attention_layer import MultiHeadAttention, SelfAttention
-from .base_np import BaseNP, kl_divergence_normal, gaussian_nll
+from .base_np import BaseNP, kl_divergence_normal, nll_normal
 
 
 class DeterministicEncoder(nn.Module):
@@ -264,7 +264,7 @@ class AttentiveNP(BaseNP):
 
         # Negative Log likelihood
         mu, var = self.decoder(x_target, r, z)
-        nll = gaussian_nll(y_target, mu, var)
+        nll = nll_normal(y_target, mu, var)
         nll = nll.mean()
 
         # KL divergence KL(N(mu_z_t, var_z_t^0.5) || N(mu_z_c, var_z_c^0.5))
