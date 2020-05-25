@@ -62,7 +62,7 @@ class Encoder(nn.Module):
 
         # Mu and var of N(z|mu(r), var(r)^0.5)
         mu = self.fc_mu(r)
-        var = F.softplus(self.fc_var(r)) + 0.01
+        var = F.softplus(self.fc_var(r))
 
         return mu, var
 
@@ -114,7 +114,7 @@ class Decoder(nn.Module):
         # Forward
         h = self.fc(h)
         mu = self.fc_mu(h)
-        var = F.softplus(self.fc_var(h)) + 0.01
+        var = F.softplus(self.fc_var(h))
 
         return mu, var
 
