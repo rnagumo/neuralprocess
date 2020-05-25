@@ -120,7 +120,7 @@ class Trainer:
         loss_dict = collections.defaultdict(float)
 
         # Resample dataset
-        self.train_loader.dataset.generate_dataset()
+        self.train_loader.dataset.generate_dataset(resample_params=True)
 
         # Run
         self.model.train()
