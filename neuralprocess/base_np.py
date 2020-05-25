@@ -111,8 +111,8 @@ def gaussian_nll(x: Tensor, mu: Tensor, var: Tensor, reduce: bool = True
     Args:
         mu (torch.Tensor): Mean vector.
         var (torch.Tensor): Variance vector.
-        reduce (bool, optional): If `True`, sum calculated loss for
-            dimensionwise.
+        reduce (bool, optional): If `True`, sum calculated loss for each
+            data point.
 
     Returns:
         nll (torch.Tensor): Calculated nll for each data.
