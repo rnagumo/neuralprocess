@@ -15,8 +15,8 @@ class GPDataset(torch.utils.data.Dataset):
     Args:
         train (bool): Boolean for specifying train or test.
         batch_size (int): Number of total batch.
-        num_context (int): Number of context data.
-        num_target (int): Number of target data.
+        num_context_max (int): Number of context data.
+        num_target_max (int): Number of target data.
         x_dim (int, optional): Dimension size of input x.
         y_dim (int, optional): Dimension size of output y.
         gp_params (dict, optional): Parameters dict for GP class.
@@ -29,16 +29,16 @@ class GPDataset(torch.utils.data.Dataset):
         y_target (torch.Tensor): y data for target.
     """
 
-    def __init__(self, train: bool, batch_size: int, num_context: int,
-                 num_target: int, x_dim: int = 1, y_dim: int = 1,
+    def __init__(self, train: bool, batch_size: int, num_context_max: int,
+                 num_target_max: int, x_dim: int = 1, y_dim: int = 1,
                  gp_params: dict = {}):
         super().__init__()
 
         # Args
         self.train = train
         self.batch_size = batch_size
-        self.num_context = num_context
-        self.num_target = num_target
+        self.num_context_max = num_context_max
+        self.num_target_max = num_target_max
         self.x_dim = x_dim
         self.y_dim = y_dim
 
@@ -68,9 +68,9 @@ class GPDataset(torch.utils.data.Dataset):
         """
 
         # Sample number of data points
-        num_context = torch.randint(3, self.num_context, (1,)).item()
-        num_target = (torch.randint(2, self.num_target, (1,)).item()
-                      if self.train else self.num_target)
+        num_context = torch.randint(3, self.num_context_max, (1,)).item()
+        num_target = (torch.randint(2, self.num_target_max, (1,)).item()
+                      if self.train else self.num_target_max)
 
         # Sample input x
         if self.train:
@@ -145,3 +145,11 @@ class GPDataset(torch.utils.data.Dataset):
         """
 
         return self.batch_size
+
+    @property
+    def num_context(self):
+        return self.x_context.size(1)
+
+    @property
+    def num_target(self):
+        return self.x_target.size(1)

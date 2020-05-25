@@ -1,16 +1,16 @@
 {
     "train_dataset_params": {
         "batch_size": 200,
-        "num_context": 20,
-        "num_target": 50,
+        "num_context_max": 20,
+        "num_target_max": 50,
         "x_dim": 1,
         "y_dim": 1,
         "gp_params": {}
     },
     "test_dataset_params": {
         "batch_size": 10,
-        "num_context": 10,
-        "num_target": 400,
+        "num_context_max": 10,
+        "num_target_max": 400,
         "x_dim": 1,
         "y_dim": 1,
         "gp_params": {}
