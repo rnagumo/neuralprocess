@@ -164,7 +164,7 @@ class NeuralProcess(BaseNP):
 
         # Encode latents
         mu_z, var_z = self.encoder(x_context, y_context)
-        z = mu_z + (var_z ** 0.5) * torch.randn(var_z.size())
+        z = mu_z + (var_z ** 0.5) * torch.randn_like(var_z)
 
         # Query
         mu, var = self.decoder(x_target, z)
@@ -190,7 +190,7 @@ class NeuralProcess(BaseNP):
 
         # Forward
         mu_z_c, var_z_c = self.encoder(x_context, y_context)
-        z = mu_z_c + (var_z_c ** 0.5) * torch.randn(var_z_c.size())
+        z = mu_z_c + (var_z_c ** 0.5) * torch.randn_like(var_z_c)
         mu, var = self.decoder(x_target, z)
 
         # Negative Log likelihood
