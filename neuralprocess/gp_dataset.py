@@ -15,8 +15,8 @@ class GPDataset(torch.utils.data.Dataset):
     Args:
         train (bool): Boolean for specifying train or test.
         batch_size (int): Number of total batch.
-        num_context_max (int): Number of context data.
-        num_target_max (int): Number of target data.
+        num_context_max (int): Upper bound of number of context data.
+        num_target_max (int): Upper bound of number of target data.
         x_dim (int, optional): Dimension size of input x.
         y_dim (int, optional): Dimension size of output y.
         gp_params (dict, optional): Parameters dict for GP class.
@@ -62,6 +62,12 @@ class GPDataset(torch.utils.data.Dataset):
         * x_target: `(batch_size, num_target, x_dim)`
         * y_target: `(batch_size, num_target, y_dim)`
 
+        **Note**
+
+        `num_context` and `num_target` are sampled from uniform distributions.
+        Therefore, these two values might be changed at each time this function
+        is called.
+
         Args:
             x_ub (float, optional): Upper bound of x range.
             x_lb (float, optional): Lower bound of x range.
@@ -94,7 +100,7 @@ class GPDataset(torch.utils.data.Dataset):
         # Sample y from GP prior
         y = self.gp.sample(x, y_dim=self.y_dim)
 
-        # Split sample data into context and target
+        # Split sampled data into context and target set
         if self.train:
             # Context dataset
             self.x_context = x[:, :num_context]
@@ -104,7 +110,8 @@ class GPDataset(torch.utils.data.Dataset):
             self.x_target = x[:, num_context:]
             self.y_target = y[:, num_context:]
         else:
-            # Random sample from curves
+            # For context dataset, sample random data points from uniformly
+            # distributed x and y
             _x_context = torch.empty(
                 self.batch_size, num_context, self.x_dim)
             _y_context = torch.empty(
