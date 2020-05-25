@@ -56,7 +56,8 @@ class GPDataset(torch.utils.data.Dataset):
                          num_context_min: int = 3,
                          num_target_min: int = 2,
                          x_ub: float = 2.0,
-                         x_lb: float = -2.0) -> None:
+                         x_lb: float = -2.0,
+                         resample_params: bool = False) -> None:
         """Initializes dataset.
 
         Dataset sizes.
@@ -112,6 +113,10 @@ class GPDataset(torch.utils.data.Dataset):
 
             # Expand batch, size (batch_size, num_points, x_dim)
             x = x.repeat(self.batch_size, 1, 1)
+
+        # Resample GP params
+        if resample_params:
+            self.gp.resample_params()
 
         # Sample y from GP prior
         y = self.gp.sample(x, y_dim=self.y_dim)
