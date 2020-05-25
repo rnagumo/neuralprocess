@@ -138,8 +138,6 @@ class Trainer:
 
                 # Backward
                 loss.backward()
-                torch.nn.utils.clip_grad_norm_(self.model.parameters(), 10)
-
                 self.optimizer.step()
 
             # Save loss
