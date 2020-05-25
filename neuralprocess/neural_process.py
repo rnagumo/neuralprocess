@@ -186,12 +186,12 @@ class NeuralProcess(BaseNP):
             loss_dict (dict of [str, torch.Tensor]): Calculated loss.
         """
 
-        # Forward
+        # Encode
         mu_z_t, var_z_t = self.encoder(x_target, y_target)
         z = mu_z_t + (var_z_t ** 0.5) * torch.randn_like(var_z_t)
-        mu, var = self.decoder(x_target, z)
 
         # Negative Log likelihood
+        mu, var = self.decoder(x_target, z)
         dist = Normal(mu, var ** 0.5)
         nll = -dist.log_prob(y_target).mean()
 
