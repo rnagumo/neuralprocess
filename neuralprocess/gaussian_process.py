@@ -198,9 +198,9 @@ class GaussianProcess(torch.nn.Module):
         """Resamples `l2_scale` and `variance` params.
 
         Args:
-            l2_scale (float): Upper bounds of `l2_scale` value.
-            variance (float): Upper bounds of `variance` value.
-            eps (float): Lower bounds of sampled values.
+            l2_scale (float, optional): Upper bounds of `l2_scale` value.
+            variance (float, optional): Upper bounds of `variance` value.
+            eps (float, optional): Lower bounds of sampled values.
         """
 
         self.l2_scale = torch.rand((1,)).item() * l2_scale + eps
