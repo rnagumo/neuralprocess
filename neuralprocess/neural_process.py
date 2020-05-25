@@ -65,6 +65,9 @@ class Encoder(nn.Module):
         mu = self.fc_mu(r)
         var = F.softplus(self.fc_var(r))
 
+        # Lower bounds for variance
+        var = var + 0.01
+
         return mu, var
 
 
@@ -116,6 +119,9 @@ class Decoder(nn.Module):
         h = self.fc(h)
         mu = self.fc_mu(h)
         var = F.softplus(self.fc_var(h))
+
+        # Lower bounds for variance
+        var = var + 0.01
 
         return mu, var
 
