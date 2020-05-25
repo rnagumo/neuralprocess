@@ -61,9 +61,6 @@ class Encoder(nn.Module):
         mu = self.fc_mu(r)
         var = F.softplus(self.fc_var(r))
 
-        # Bounds variance > 0.01 (original code: sigma > 0.1)
-        var = var + 0.01
-
         return mu, var
 
 
@@ -115,9 +112,6 @@ class Decoder(nn.Module):
         h = self.fc(h)
         mu = self.fc_mu(h)
         var = F.softplus(self.fc_var(h))
-
-        # Bounds variance > 0.01 (original code: sigma > 0.1)
-        var = var + 0.01
 
         return mu, var
 
@@ -188,18 +182,22 @@ class NeuralProcess(BaseNP):
             loss_dict (dict of [str, torch.Tensor]): Calculated loss.
         """
 
+        # Concat context and target: (batch, num_context + num_target, dim)
+        x_cat = torch.cat([x_context, x_target], dim=1)
+        y_cat = torch.cat([y_context, y_target], dim=1)
+
         # Forward
-        mu_z_c, var_z_c = self.encoder(x_context, y_context)
-        z = mu_z_c + (var_z_c ** 0.5) * torch.randn_like(var_z_c)
+        mu_z_0, var_z_0 = self.encoder(x_cat, y_cat)
+        z = mu_z_0 + (var_z_0 ** 0.5) * torch.randn_like(var_z_0)
         mu, var = self.decoder(x_target, z)
 
         # Negative Log likelihood
         dist = Normal(mu, var ** 0.5)
         nll = -dist.log_prob(y_target).mean()
 
-        # KL divergence KL(N(mu_z_t, var_z_t^0.5) || N(mu_z_c, var_z_c^0.5))
-        mu_z_t, var_z_t = self.encoder(x_target, y_target)
-        kl_div = kl_divergence_normal(mu_z_t, var_z_t, mu_z_c, var_z_c)
+        # KL divergence KL[N(mu_z_0, var_z_0^0.5) || N(mu_z_1, var_z_1^0.5)]
+        mu_z_1, var_z_1 = self.encoder(x_context, y_context)
+        kl_div = kl_divergence_normal(mu_z_0, var_z_0, mu_z_1, var_z_1)
         kl_div = kl_div.mean()
 
         # ELBO loss

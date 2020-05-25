@@ -156,9 +156,11 @@ class GPDataset(torch.utils.data.Dataset):
         return self.batch_size
 
     @property
-    def num_context(self):
+    def num_context(self) -> int:
+        """Number of context for current dataset."""
         return self.x_context.size(1)
 
     @property
-    def num_target(self):
+    def num_target(self) -> int:
+        """Number of target for current dataset."""
         return self.x_target.size(1)
