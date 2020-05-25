@@ -42,13 +42,13 @@ class DeterministicEncoder(nn.Module):
 
         Args:
             x (torch.Tensor): x context data, size
-                `(batch_size, num_context, x_dim)`.
+                `(batch_size, num_points, x_dim)`.
             y (torch.Tensor): x context data, size
-                `(batch_size, num_context, y_dim)`.
+                `(batch_size, num_points, y_dim)`.
 
         Returns:
             r (torch.Tensor): Aggregated representation, size
-                `(batch_size, num_context, r_dim)`.
+                `(batch_size, num_points, r_dim)`.
         """
 
         h = torch.cat([x, y], dim=-1)
@@ -94,9 +94,9 @@ class StochasticEncoder(nn.Module):
 
         Args:
             x (torch.Tensor): x context data, size
-                `(batch_size, num_context, x_dim)`.
+                `(batch_size, num_points, x_dim)`.
             y (torch.Tensor): x context data, size
-                `(batch_size, num_context, y_dim)`.
+                `(batch_size, num_points, y_dim)`.
 
         Returns:
             mu (torch.Tensor): Sampled aggregated mean, size
@@ -110,7 +110,7 @@ class StochasticEncoder(nn.Module):
         s = self.attention(h)
 
         # Aggregate representations for all contexts per batch and dimension.
-        # (batch_size, num_context, s_dim) -> (batch_size, s_dim)
+        # (batch_size, num_points, s_dim) -> (batch_size, s_dim)
         s = s.mean(dim=1)
 
         # Mean and variance of N(mu(s), var(s)^0.5)

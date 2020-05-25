@@ -42,9 +42,9 @@ class Encoder(nn.Module):
 
         Args:
             x (torch.Tensor): x context data, size
-                `(batch_size, num_context, x_dim)`.
+                `(batch_size, num_points, x_dim)`.
             y (torch.Tensor): x context data, size
-                `(batch_size, num_context, y_dim)`.
+                `(batch_size, num_points, y_dim)`.
 
         Returns:
             mu (torch.Tensor): Aggregated mean, size
@@ -57,7 +57,7 @@ class Encoder(nn.Module):
         h = self.fc(h)
 
         # Aggregate representations for all contexts per batch and dimension.
-        # (batch_size, num_context, r_dim) -> (batch_size, r_dim)
+        # (batch_size, num_points, r_dim) -> (batch_size, r_dim)
         r = h.mean(dim=1)
 
         # Mu and var of N(z|mu(r), var(r)^0.5)
