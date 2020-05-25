@@ -29,11 +29,11 @@ class DeterministicEncoder(nn.Module):
         super().__init__()
 
         self.fc = nn.Sequential(
-            nn.Linear(x_dim + y_dim, 128),
+            nn.Linear(x_dim + y_dim, 64),
             nn.ReLU(),
-            nn.Linear(128, 128),
+            nn.Linear(64, 64),
             nn.ReLU(),
-            nn.Linear(128, r_dim),
+            nn.Linear(64, r_dim),
         )
         self.attention = SelfAttention(r_dim, r_dim, n_head)
 
@@ -78,11 +78,11 @@ class StochasticEncoder(nn.Module):
         super().__init__()
 
         self.fc = nn.Sequential(
-            nn.Linear(x_dim + y_dim, 128),
+            nn.Linear(x_dim + y_dim, 64),
             nn.ReLU(),
-            nn.Linear(128, 128),
+            nn.Linear(64, 64),
             nn.ReLU(),
-            nn.Linear(128, s_dim),
+            nn.Linear(64, s_dim),
         )
         self.fc_mu = nn.Linear(s_dim, z_dim)
         self.fc_var = nn.Linear(s_dim, z_dim)
@@ -134,14 +134,14 @@ class Decoder(nn.Module):
         super().__init__()
 
         self.fc = nn.Sequential(
-            nn.Linear(x_dim + r_dim + z_dim, 128),
+            nn.Linear(x_dim + r_dim + z_dim, 64),
             nn.ReLU(),
-            nn.Linear(128, 128),
+            nn.Linear(64, 64),
             nn.ReLU(),
         )
 
-        self.fc_mu = nn.Linear(128, y_dim)
-        self.fc_var = nn.Linear(128, y_dim)
+        self.fc_mu = nn.Linear(64, y_dim)
+        self.fc_var = nn.Linear(64, y_dim)
 
     def forward(self, x: Tensor, r: Tensor, z: Tensor
                 ) -> Tuple[Tensor, Tensor]:
