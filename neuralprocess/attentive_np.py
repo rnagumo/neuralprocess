@@ -117,9 +117,6 @@ class StochasticEncoder(nn.Module):
         mu = self.fc_mu(s)
         var = F.softplus(self.fc_var(s))
 
-        # Bounds variance > 0.01 (original code: sigma > 0.1)
-        var = var + 0.01
-
         return mu, var
 
 
@@ -175,9 +172,6 @@ class Decoder(nn.Module):
         h = self.fc(h)
         mu = self.fc_mu(h)
         var = F.softplus(self.fc_var(h))
-
-        # Bounds variance > 0.01 (original code: sigma > 0.1)
-        var = var + 0.01
 
         return mu, var
 
