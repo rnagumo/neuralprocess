@@ -261,19 +261,25 @@ class AttentiveNP(BaseNP):
             loss_dict (dict of [str, torch.Tensor]): Calculated loss.
         """
 
-        # Forward
+        # Concat context and target: (batch, num_context + num_target, dim)
+        x_cat = torch.cat([x_context, x_target], dim=1)
+        y_cat = torch.cat([y_context, y_target], dim=1)
+
+        # Stochastic latents
+        mu_z_t, var_z_t = self.encoder_z(x_cat, y_cat)
+        z = mu_z_t + (var_z_t ** 0.5) * torch.randn_like(var_z_t)
+
+        # Deterministic representations
         r_c = self.encoder_r(x_context, y_context)
-        r = self.attention(x_target, x_context, r_c)
-        mu_z_c, var_z_c = self.encoder_z(x_context, y_context)
-        z = mu_z_c + (var_z_c ** 0.5) * torch.randn_like(var_z_c)
-        mu, var = self.decoder(x_target, r, z)
+        r = self.attention(x_cat, x_context, r_c)
 
         # Negative Log likelihood
+        mu, var = self.decoder(x_cat, r, z)
         dist = Normal(mu, var ** 0.5)
-        nll = -dist.log_prob(y_target).mean()
+        nll = -dist.log_prob(y_cat).mean()
 
         # KL divergence KL(N(mu_z_t, var_z_t^0.5) || N(mu_z_c, var_z_c^0.5))
-        mu_z_t, var_z_t = self.encoder_z(x_target, y_target)
+        mu_z_c, var_z_c = self.encoder_z(x_context, y_context)
         kl_div = kl_divergence_normal(mu_z_t, var_z_t, mu_z_c, var_z_c)
         kl_div = kl_div.mean()
 
