@@ -105,9 +105,6 @@ class Decoder(nn.Module):
         mu = self.fc_mu(h)
         var = F.softplus(self.fc_var(h))
 
-        # Bounds variance > 0.01 (original code: sigma > 0.1)
-        var = var + 0.01
-
         return mu, var
 
 
