@@ -68,9 +68,11 @@ class GPDataset(torch.utils.data.Dataset):
 
         **Note**
 
-        `num_context` and `num_target` are sampled from uniform distributions.
-        Therefore, these two values might be changed at each time this function
-        is called.
+        * `num_context` and `num_target` are sampled from uniform
+        distributions. Therefore, these two values might be changed at each
+        time this function is called.
+
+        * Target dataset includes context dataset, that is, C in T.
 
         Args:
             num_context_min (int, optional): Minimum value of number of context
@@ -95,8 +97,7 @@ class GPDataset(torch.utils.data.Dataset):
         # Sample input x
         if self.train:
             # For training, sample random points in range of [x_lb, x_ub]
-            x = torch.rand(self.batch_size, num_context + num_target,
-                           self.x_dim)
+            x = torch.rand(self.batch_size, num_target, self.x_dim)
             x = x * (x_ub - x_lb) + x_lb
         else:
             # For test, sample uniformly distributed array in range of
@@ -114,35 +115,22 @@ class GPDataset(torch.utils.data.Dataset):
         # Sample y from GP prior
         y = self.gp.sample(x, y_dim=self.y_dim)
 
-        # Split sampled data into context and target set
-        if self.train:
-            # Context dataset
-            self.x_context = x[:, :num_context]
-            self.y_context = y[:, :num_context]
+        # Sample random data points as context from target
+        _x_context = torch.empty(
+            self.batch_size, num_context, self.x_dim)
+        _y_context = torch.empty(
+            self.batch_size, num_context, self.y_dim)
+        for i in range(self.batch_size):
+            indices = torch.randint(0, num_target, (num_context,))
+            _x_context[i] = x[i, indices]
+            _y_context[i] = y[i, indices]
 
-            # Target dataset
-            self.x_target = x[:, num_context:]
-            self.y_target = y[:, num_context:]
-        else:
-            # For context dataset, sample random data points from uniformly
-            # distributed x_target and y_target
-            _x_context = torch.empty(
-                self.batch_size, num_context, self.x_dim)
-            _y_context = torch.empty(
-                self.batch_size, num_context, self.y_dim)
+        self.x_context = _x_context
+        self.y_context = _y_context
 
-            # Random sampling for each batch
-            for i in range(self.batch_size):
-                indices = torch.randint(0, num_target, (num_context,))
-                _x_context[i] = x[i, indices]
-                _y_context[i] = y[i, indices]
-
-            self.x_context = _x_context
-            self.y_context = _y_context
-
-            # Target dataset
-            self.x_target = x
-            self.y_target = y
+        # Target dataset
+        self.x_target = x
+        self.y_target = y
 
     def __getitem__(self, index: int) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
         """Gets item with specified index.
