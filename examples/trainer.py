@@ -110,7 +110,7 @@ class Trainer:
 
         self.test_loader = torch.utils.data.DataLoader(
             npr.GPDataset(train=False, **test_dataset_params),
-            shuffle=False, batch_size=test_dataset_params["batch_size"])
+            shuffle=False, batch_size=1)
 
     def train(self, epoch: int) -> float:
         """Trains model.
@@ -124,6 +124,9 @@ class Trainer:
 
         # Logger for loss
         loss_dict = collections.defaultdict(float)
+
+        # Resample dataset
+        self.train_loader.dataset.generate_dataset()
 
         # Run
         self.model.train()
