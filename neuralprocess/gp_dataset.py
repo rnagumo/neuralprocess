@@ -49,6 +49,9 @@ class GPDataset(torch.utils.data.Dataset):
         self.x_target = None
         self.y_target = None
 
+        # Initialize dataset
+        self.generate_dataset()
+
     def generate_dataset(self, x_ub: float = 2.0, x_lb: float = -2.0) -> None:
         """Initializes dataset.
 
@@ -131,10 +134,8 @@ class GPDataset(torch.utils.data.Dataset):
             y_target (torch.Tensor): y data for target.
         """
 
-        # Resample data
-        self.generate_dataset()
-
-        return self.x_context, self.y_context, self.x_target, self.y_target
+        return (self.x_context[index], self.y_context[index],
+                self.x_target[index], self.y_target[index])
 
     def __len__(self) -> int:
         """Length of dataset.

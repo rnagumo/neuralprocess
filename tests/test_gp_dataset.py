@@ -42,28 +42,28 @@ class TestGPDataset(unittest.TestCase):
         self.assertEqual(len(dataset), self.params["batch_size"])
 
     def _base_method(self, train):
+        indices = [0, 1, 2]
         dataset = npr.GPDataset(train=train, **self.params)
-        x_ctx, y_ctx, x_tgt, y_tgt = dataset[0]
+        x_ctx, y_ctx, x_tgt, y_tgt = dataset[indices]
 
-        batch_size = self.params["batch_size"]
         num_context = self.params["num_context"]
         num_target = self.params["num_target"]
         x_dim = self.params["x_dim"]
         y_dim = self.params["y_dim"]
 
-        self.assertEqual(x_ctx.size(0), batch_size)
+        self.assertEqual(x_ctx.size(0), len(indices))
         self.assertLessEqual(x_ctx.size(1), num_context)
         self.assertEqual(x_ctx.size(2), x_dim)
 
-        self.assertEqual(y_ctx.size(0), batch_size)
+        self.assertEqual(y_ctx.size(0), len(indices))
         self.assertLessEqual(y_ctx.size(1), num_context)
         self.assertEqual(y_ctx.size(2), y_dim)
 
-        self.assertEqual(x_tgt.size(0), batch_size)
+        self.assertEqual(x_tgt.size(0), len(indices))
         self.assertLessEqual(x_tgt.size(1), num_target)
         self.assertEqual(x_tgt.size(2), x_dim)
 
-        self.assertEqual(y_tgt.size(0), batch_size)
+        self.assertEqual(y_tgt.size(0), len(indices))
         self.assertLessEqual(y_tgt.size(1), num_target)
         self.assertEqual(y_tgt.size(2), y_dim)
 
