@@ -272,7 +272,7 @@ class Trainer:
         self.model = self.model.to(self.device)
 
         # Optimizer
-        self.optimizer = optim.Adam(self.model.parameters())
+        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-4)
 
         # Run training
         self.logger.info("Start training")
