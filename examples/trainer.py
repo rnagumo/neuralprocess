@@ -93,23 +93,17 @@ class Trainer:
 
         self.writer = tb.SummaryWriter(str(self.logdir))
 
-    def load_dataloader(self, train_dataset_params: dict,
-                        test_dataset_params: dict) -> None:
-        """Loads data loader for training and test.
-
-        Args:
-            train_dataset_params (dict): Dict of params for training dataset.
-            test_dataset_params (dict): Dict of params for test dataset.
-        """
+    def load_dataloader(self) -> None:
+        """Loads data loader for training and test."""
 
         self.logger.info("Load dataset")
 
         self.train_loader = torch.utils.data.DataLoader(
-            npr.GPDataset(train=True, **train_dataset_params),
+            npr.GPDataset(train=True, **self.hparams["train_dataset_params"]),
             shuffle=True, batch_size=64)
 
         self.test_loader = torch.utils.data.DataLoader(
-            npr.GPDataset(train=False, **test_dataset_params),
+            npr.GPDataset(train=False, **self.hparams["test_dataset_params"]),
             shuffle=False, batch_size=1)
 
     def train(self, epoch: int) -> float:
@@ -265,8 +259,7 @@ class Trainer:
         self.logger.info("Start experiment")
 
         # Data
-        self.load_dataloader(self.hparams["train_dataset_params"],
-                             self.hparams["test_dataset_params"])
+        self.load_dataloader()
 
         # Model to device
         if self.hparams["gpus"] is None:
