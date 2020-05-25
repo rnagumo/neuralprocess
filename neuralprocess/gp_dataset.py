@@ -49,10 +49,7 @@ class GPDataset(torch.utils.data.Dataset):
         self.x_target = None
         self.y_target = None
 
-        # Init dataset
-        self._init_dataset()
-
-    def _init_dataset(self, x_ub: float = 2.0, x_lb: float = -2.0) -> None:
+    def generate_dataset(self, x_ub: float = 2.0, x_lb: float = -2.0) -> None:
         """Initializes dataset.
 
         Dataset sizes.
@@ -67,53 +64,59 @@ class GPDataset(torch.utils.data.Dataset):
             x_lb (float, optional): Lower bound of x range.
         """
 
-        if self.num_context > self.num_target:
-            raise ValueError(
-                f"Dataset size error: "
-                f"num_context ({self.num_context}) should be equal or "
-                f"larger than num_target ({self.num_target})")
+        # Sample number of data points
+        num_context = torch.randint(3, self.num_context, (1,)).item()
+        num_target = (torch.randint(2, self.num_target, (1,)).item()
+                      if self.train else self.num_target)
 
         # Sample input x
         if self.train:
             # For training, sample random points
-            x = (torch.rand(self.batch_size, self.num_target, self.x_dim)
-                 * (x_ub - x_lb) + x_lb)
+            x = torch.rand(self.batch_size, num_context + num_target,
+                           self.x_dim)
+            x = x * (x_ub - x_lb) + x_lb
         else:
             # For test, sample evenly distributed array for plot
+            num_points = max(num_context, num_target)
 
             # Uniformly distributed x
-            x = torch.arange(x_lb, x_ub, (x_ub - x_lb) / self.num_target)
+            x = torch.arange(x_lb, x_ub, (x_ub - x_lb) / num_points)
 
-            # Expand x_dim, size (num_target, x_dim)
+            # Expand x_dim, size (num_points, x_dim)
             x = x.view(-1, 1).repeat(1, self.x_dim)
 
-            # Expand batch, size (batch_size, num_target, x_dim)
+            # Expand batch, size (batch_size, num_points, x_dim)
             x = x.repeat(self.batch_size, 1, 1)
 
         # Sample y from GP prior
         y = self.gp.sample(x, y_dim=self.y_dim)
 
-        # Context dataset
+        # Split sample data into context and target
         if self.train:
-            self.x_context = x[:, :self.num_context]
-            self.y_context = y[:, :self.num_context]
+            # Context dataset
+            self.x_context = x[:, :num_context]
+            self.y_context = y[:, :num_context]
+
+            # Target dataset
+            self.x_target = x[:, num_context:]
+            self.y_target = y[:, num_context:]
         else:
             # Random sample from curves
             _x_context = torch.empty(
-                self.batch_size, self.num_context, self.x_dim)
+                self.batch_size, num_context, self.x_dim)
             _y_context = torch.empty(
-                self.batch_size, self.num_context, self.y_dim)
+                self.batch_size, num_context, self.y_dim)
             for i in range(self.batch_size):
-                indices = torch.randperm(self.num_target)
-                _x_context[i] = x[i, indices[:self.num_context]]
-                _y_context[i] = y[i, indices[:self.num_context]]
+                indices = torch.randperm(max(num_context, num_target))
+                _x_context[i] = x[i, indices[:num_context]]
+                _y_context[i] = y[i, indices[:num_context]]
 
             self.x_context = _x_context
             self.y_context = _y_context
 
-        # Target dataset contains all sample data.
-        self.x_target = x
-        self.y_target = y
+            # Target dataset
+            self.x_target = x[:, :num_target]
+            self.y_target = y[:, :num_target]
 
     def __getitem__(self, index: int) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
         """Gets item with specified index.
@@ -128,8 +131,10 @@ class GPDataset(torch.utils.data.Dataset):
             y_target (torch.Tensor): y data for target.
         """
 
-        return (self.x_context[index], self.y_context[index],
-                self.x_target[index], self.y_target[index])
+        # Resample data
+        self.generate_dataset()
+
+        return self.x_context, self.y_context, self.x_target, self.y_target
 
     def __len__(self) -> int:
         """Length of dataset.
