@@ -17,7 +17,7 @@ class TestGaussianProcess(unittest.TestCase):
             npr.GaussianProcess(l2_scale=0.)
 
         with self.assertRaises(ValueError):
-            npr.GaussianProcess(sigma=0.)
+            npr.GaussianProcess(variance=0.)
 
     def test_gaussian_kernel(self):
         batch_size = 5
@@ -135,11 +135,11 @@ class TestGaussianProcess(unittest.TestCase):
     def test_resample_params(self):
         self.model.resample_params()
         self.assertTrue(0 < self.model.l2_scale < 1.01)
-        self.assertTrue(0 < self.model.sigma < 1.01)
+        self.assertTrue(0 < self.model.variance < 1.01)
 
-        self.model.resample_params(l2_scale=2.0, sigma=3.0, eps=1.0)
+        self.model.resample_params(l2_scale=2.0, variance=3.0, eps=1.0)
         self.assertTrue(1.0 < self.model.l2_scale < 3.0)
-        self.assertTrue(1.0 < self.model.sigma < 4.0)
+        self.assertTrue(1.0 < self.model.variance < 4.0)
 
 
 if __name__ == "__main__":

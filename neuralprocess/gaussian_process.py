@@ -15,14 +15,14 @@ class GaussianProcess(torch.nn.Module):
 
     Args:
         l2_scale (float, optional): Scale parameter of the Gaussian kernel.
-        sigma (float, optional): Magnitude of std.
+        variance (float, optional): Magnitude of std.
     """
 
-    def __init__(self, l2_scale: float = 0.4, sigma: float = 1.0):
+    def __init__(self, l2_scale: float = 0.4, variance: float = 1.0):
         super().__init__()
 
         self.l2_scale = l2_scale
-        self.sigma = sigma
+        self.variance = variance
 
         # Saved training data
         self._x_train = None
@@ -32,8 +32,8 @@ class GaussianProcess(torch.nn.Module):
         if l2_scale <= 0:
             raise ValueError("L2 scale parameter should be >0")
 
-        if sigma <= 0:
-            raise ValueError("Sigma should be >0")
+        if variance <= 0:
+            raise ValueError("Variance should be >0")
 
     def forward(self, x: Tensor) -> Tensor:
         """Forward method for prediction.
@@ -85,7 +85,7 @@ class GaussianProcess(torch.nn.Module):
         norm = ((diff / self.l2_scale) ** 2).sum(-1)
 
         # Gaussian kernel (batch_size, num_points_0, num_points_1)
-        kernel = (self.sigma ** 2) * torch.exp(-0.5 * norm)
+        kernel = self.variance * torch.exp(-0.5 * norm)
 
         # Add some noise to the diagonal to make the cholesky work
         if kernel.size(1) == kernel.size(2):
@@ -193,15 +193,15 @@ class GaussianProcess(torch.nn.Module):
 
         return y
 
-    def resample_params(self, l2_scale: float = 1.0, sigma: float = 1.0,
+    def resample_params(self, l2_scale: float = 1.0, variance: float = 1.0,
                         eps: float = 1e-2) -> None:
-        """Resamples `l2_scale` and `sigma` params.
+        """Resamples `l2_scale` and `variance` params.
 
         Args:
             l2_scale (float): Upper bounds of `l2_scale` value.
-            sigma (float): Upper bounds of `sigma` value.
+            variance (float): Upper bounds of `variance` value.
             eps (float): Lower bounds of sampled values.
         """
 
         self.l2_scale = torch.rand((1,)).item() * l2_scale + eps
-        self.sigma = torch.rand((1,)).item() * sigma + eps
+        self.variance = torch.rand((1,)).item() * variance + eps
