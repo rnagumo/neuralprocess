@@ -10,9 +10,8 @@ from typing import Tuple, Dict
 import torch
 from torch import Tensor, nn
 from torch.nn import functional as F
-from torch.distributions import Normal
 
-from .base_np import BaseNP, kl_divergence_normal
+from .base_np import BaseNP, kl_divergence_normal, gaussian_nll
 
 
 class Encoder(nn.Module):
@@ -198,8 +197,8 @@ class NeuralProcess(BaseNP):
 
         # Negative Log likelihood
         mu, var = self.decoder(x_target, z)
-        dist = Normal(mu, var ** 0.5)
-        nll = -dist.log_prob(y_target).mean()
+        nll = gaussian_nll(y_target, mu, var)
+        nll = nll.mean()
 
         # KL divergence KL[N(mu_z_t, var_z_t^0.5) || N(mu_z_c, var_z_c^0.5)]
         mu_z_c, var_z_c = self.encoder(x_context, y_context)
