@@ -52,7 +52,11 @@ class GPDataset(torch.utils.data.Dataset):
         # Initialize dataset
         self.generate_dataset()
 
-    def generate_dataset(self, x_ub: float = 2.0, x_lb: float = -2.0) -> None:
+    def generate_dataset(self,
+                         num_context_min: int = 3,
+                         num_target_min: int = 2,
+                         x_ub: float = 2.0,
+                         x_lb: float = -2.0) -> None:
         """Initializes dataset.
 
         Dataset sizes.
@@ -69,14 +73,24 @@ class GPDataset(torch.utils.data.Dataset):
         is called.
 
         Args:
+            num_context_min (int, optional): Minimum value of number of context
+                dataset.
+            num_target_min (int, optional): Minimum value of number of target
+                dataset.
             x_ub (float, optional): Upper bound of x range.
             x_lb (float, optional): Lower bound of x range.
         """
 
+        # Bounds number of dataset
+        num_context_max = max(num_context_min + 1, self.num_context_max)
+        num_target_max = max(num_target_min + 1, self.num_target_max)
+
         # Sample number of data points
-        num_context = torch.randint(3, self.num_context_max, (1,)).item()
-        num_target = (torch.randint(2, self.num_target_max, (1,)).item()
-                      if self.train else self.num_target_max)
+        num_context = \
+            torch.randint(num_context_min, num_context_max, (1,)).item()
+        num_target = (
+            torch.randint(num_target_min, num_target_max, (1,)).item()
+            if self.train else max(num_target_min, self.num_target_max))
 
         # Sample input x
         if self.train:
