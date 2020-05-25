@@ -15,8 +15,10 @@ class GPDataset(torch.utils.data.Dataset):
     Args:
         train (bool): Boolean for specifying train or test.
         batch_size (int): Number of total batch.
-        num_context_max (int): Upper bound of number of context data.
-        num_target_max (int): Upper bound of number of target data.
+        num_context_min (int, optional): Lower bound of number of context data.
+        num_context_max (int, optional): Upper bound of number of context data.
+        num_target_min (int, optional): Lower bound of number of target data.
+        num_target_max (int, optional): Upper bound of number of target data.
         x_dim (int, optional): Dimension size of input x.
         y_dim (int, optional): Dimension size of output y.
         gp_params (dict, optional): Parameters dict for GP class.
@@ -29,15 +31,18 @@ class GPDataset(torch.utils.data.Dataset):
         y_target (torch.Tensor): y data for target.
     """
 
-    def __init__(self, train: bool, batch_size: int, num_context_max: int,
-                 num_target_max: int, x_dim: int = 1, y_dim: int = 1,
+    def __init__(self, train: bool, batch_size: int, num_context_min: int = 3,
+                 num_context_max: int = 10, num_target_min: int = 2,
+                 num_target_max: int = 10, x_dim: int = 1, y_dim: int = 1,
                  gp_params: dict = {}):
         super().__init__()
 
         # Args
         self.train = train
         self.batch_size = batch_size
+        self.num_context_min = num_context_min
         self.num_context_max = num_context_max
+        self.num_target_min = num_target_min
         self.num_target_max = num_target_max
         self.x_dim = x_dim
         self.y_dim = y_dim
@@ -52,11 +57,7 @@ class GPDataset(torch.utils.data.Dataset):
         # Initialize dataset
         self.generate_dataset()
 
-    def generate_dataset(self,
-                         num_context_min: int = 3,
-                         num_target_min: int = 2,
-                         x_ub: float = 2.0,
-                         x_lb: float = -2.0,
+    def generate_dataset(self, x_ub: float = 2.0, x_lb: float = -2.0,
                          resample_params: bool = False) -> None:
         """Initializes dataset.
 
@@ -77,24 +78,22 @@ class GPDataset(torch.utils.data.Dataset):
         subset of target.
 
         Args:
-            num_context_min (int, optional): Minimum value of number of context
-                dataset.
-            num_target_min (int, optional): Minimum value of number of target
-                dataset.
             x_ub (float, optional): Upper bound of x range.
             x_lb (float, optional): Lower bound of x range.
+            resample_params (bool, optional): If true, resample gaussian
+                kernel parameters.
         """
 
         # Bounds number of dataset
-        num_context_max = max(num_context_min + 1, self.num_context_max)
-        num_target_max = max(num_target_min + 1, self.num_target_max)
+        num_context_max = max(self.num_context_min + 1, self.num_context_max)
+        num_target_max = max(self.num_target_min + 1, self.num_target_max)
 
         # Sample number of data points
         num_context = \
-            torch.randint(num_context_min, num_context_max, (1,)).item()
+            torch.randint(self.num_context_min, num_context_max, (1,)).item()
         num_target = (
-            torch.randint(num_target_min, num_target_max, (1,)).item()
-            if self.train else max(num_target_min, self.num_target_max))
+            torch.randint(self.num_target_min, num_target_max, (1,)).item()
+            if self.train else max(self.num_target_min, self.num_target_max))
 
         # Sample input x
         if self.train:
