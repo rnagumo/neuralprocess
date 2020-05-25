@@ -186,12 +186,8 @@ class NeuralProcess(BaseNP):
             loss_dict (dict of [str, torch.Tensor]): Calculated loss.
         """
 
-        # Concat context and target: (batch, num_context + num_target, dim)
-        x_cat = torch.cat([x_context, x_target], dim=1)
-        y_cat = torch.cat([y_context, y_target], dim=1)
-
         # Forward
-        mu_z_t, var_z_t = self.encoder(x_cat, y_cat)
+        mu_z_t, var_z_t = self.encoder(x_target, y_target)
         z = mu_z_t + (var_z_t ** 0.5) * torch.randn_like(var_z_t)
         mu, var = self.decoder(x_target, z)
 
@@ -201,7 +197,7 @@ class NeuralProcess(BaseNP):
 
         # KL divergence KL[N(mu_z_t, var_z_t^0.5) || N(mu_z_c, var_z_c^0.5)]
         mu_z_c, var_z_c = self.encoder(x_context, y_context)
-        kl_div = kl_divergence_normal(mu_z_c, var_z_c, mu_z_t, var_z_t)
+        kl_div = kl_divergence_normal(mu_z_t, var_z_t, mu_z_c, var_z_c)
         kl_div = kl_div.mean()
 
         # ELBO loss
