@@ -100,7 +100,7 @@ class Trainer:
 
         self.train_loader = torch.utils.data.DataLoader(
             npr.GPDataset(train=True, **self.hparams["train_dataset_params"]),
-            shuffle=True, batch_size=64)
+            shuffle=True, batch_size=16)
 
         self.test_loader = torch.utils.data.DataLoader(
             npr.GPDataset(train=False, **self.hparams["test_dataset_params"]),
