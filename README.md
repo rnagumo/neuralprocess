@@ -10,7 +10,6 @@ Neural Process family
 
 Requirements for example code
 
-* numpy == 1.18.4
 * matplotlib == 3.2.1
 * tqdm == 4.46.0
 * tensorboardX == 2.0
@@ -34,7 +33,7 @@ source .venv/bin/activate
 pip3 install .
 
 # Install other requirements for sample code.
-pip3 install numpy==1.18.4 matplotlib==3.2.1 tqdm==4.46.0 tensorboardX==2.0
+pip3 install matplotlib==3.2.1 tqdm==4.46.0 tensorboardX==2.0
 ```
 
 Or use [Docker](https://docs.docker.com/get-docker/).

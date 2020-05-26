@@ -6,7 +6,6 @@ import json
 import os
 import pathlib
 
-import numpy as np
 import torch
 
 import neuralprocess as npr
@@ -38,7 +37,6 @@ def main():
 
     # Random seed
     torch.manual_seed(args.seed)
-    np.random.seed(args.seed)
 
     # -------------------------------------------------------------------------
     # 2. Training
