@@ -88,13 +88,13 @@ def kl_divergence_normal(mu0: Tensor, var0: Tensor, mu1: Tensor, var1: Tensor
                       - d + log(|var1| / |var0|))
 
     Args:
-        mu0 (torch.Tensor): Mean vector of p, size.
-        var0 (torch.Tensor): Diagonal variance of p.
-        mu1 (torch.Tensor): Mean vector of q.
-        var1 (torch.Tensor): Diagonal variance of q.
+        mu0 (torch.Tensor): Mean vector of p, size `(*, dim)`.
+        var0 (torch.Tensor): Diagonal variance of p, size `(*, dim)`.
+        mu1 (torch.Tensor): Mean vector of q, size `(*, dim)`.
+        var1 (torch.Tensor): Diagonal variance of q, size `(*, dim)`.
 
     Returns:
-        kl (torch.Tensor): Calculated kl divergence for each data.
+        kl (torch.Tensor): Calculated kl divergence for each data, size `(*,)`.
     """
 
     diff = mu1 - mu0
@@ -109,13 +109,14 @@ def nll_normal(x: Tensor, mu: Tensor, var: Tensor, reduce: bool = True
     """Negative log likelihood for 1-D Normal distribution.
 
     Args:
-        mu (torch.Tensor): Mean vector.
-        var (torch.Tensor): Variance vector.
+        mu (torch.Tensor): Mean vector, size `(*, dim)`.
+        var (torch.Tensor): Variance vector, size `(*, dim)`.
         reduce (bool, optional): If `True`, sum calculated loss for each
             data point.
 
     Returns:
-        nll (torch.Tensor): Calculated nll for each data.
+        nll (torch.Tensor): Calculated nll for each data, size `(*,)` if
+            `reduce` is `True`, `(*, dim)` otherwise.
     """
 
     nll = 0.5 * ((2 * math.pi * var).log() + (x - mu) ** 2 / var)
