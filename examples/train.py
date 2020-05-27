@@ -9,7 +9,7 @@ import pathlib
 import torch
 
 import neuralprocess as npr
-from trainer import Trainer
+from experiment import Trainer
 
 
 def main():
