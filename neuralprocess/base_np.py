@@ -77,30 +77,31 @@ class BaseNP(nn.Module):
         raise NotImplementedError
 
 
-def kl_divergence_normal(mu0: Tensor, var0: Tensor, mu1: Tensor, var1: Tensor
-                         ) -> Tensor:
-    """Kullback Leibler divergence for Normal distributions with diagonal
-    covariance matrix.
+def kl_divergence_normal(mu0: Tensor, var0: Tensor, mu1: Tensor, var1: Tensor,
+                         reduce: bool = True) -> Tensor:
+    """Kullback Leibler divergence for 1-D Normal distributions.
 
     p = N(mu0, var0)
     q = N(mu1, var1)
-    KL(p||q) = 1/2 * (Tr(var1^{-1} var0) + (mu1-mu0)^T var1^{-1} (mu1-mu0)
-                      - d + log(|var1| / |var0|))
+    KL(p||q) = 1/2 * (var0/var1 + (mu1-mu0)^2/var1 - 1 + log(var1/var0))
 
     Args:
-        mu0 (torch.Tensor): Mean vector of p, size `(*, dim)`.
-        var0 (torch.Tensor): Diagonal variance of p, size `(*, dim)`.
-        mu1 (torch.Tensor): Mean vector of q, size `(*, dim)`.
-        var1 (torch.Tensor): Diagonal variance of q, size `(*, dim)`.
+        mu0 (torch.Tensor): Mean vector of p, size.
+        var0 (torch.Tensor): Diagonal variance of p.
+        mu1 (torch.Tensor): Mean vector of q.
+        var1 (torch.Tensor): Diagonal variance of q.
+        reduce (bool, optional): If `True`, sum calculated loss for each
+            data point.
 
     Returns:
-        kl (torch.Tensor): Calculated kl divergence for each data, size `(*,)`.
+        kl (torch.Tensor): Calculated kl divergence for each data.
     """
 
     diff = mu1 - mu0
-    kl = ((var0 / var1).sum(-1) + (diff / var1 * diff).sum(-1) - mu1.size(-1)
-          + (var1.prod(-1) / var0.prod(-1)).log()) * 0.5
+    kl = (var0 / var1 + diff ** 2 / var1 - 1 + (var1 / var0).log()) * 0.5
 
+    if reduce:
+        return kl.sum(-1)
     return kl
 
 
