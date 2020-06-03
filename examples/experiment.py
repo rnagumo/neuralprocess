@@ -121,9 +121,9 @@ class Trainer:
         loss_dict = collections.defaultdict(float)
 
         # Resample dataset
-        # resample_params = self.hparams["model"] != "cnp"
-        # self.train_loader.dataset.generate_dataset(
-        #     resample_params=resample_params)
+        resample_params = self.hparams["model"] != "cnp"
+        self.train_loader.dataset.generate_dataset(
+            resample_params=resample_params)
 
         # Run
         self.model.train()
