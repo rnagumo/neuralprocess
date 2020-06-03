@@ -39,6 +39,7 @@ class Trainer:
         self.test_loader = None
         self.optimizer = None
         self.device = None
+        self.epoch = 0
 
     def check_logdir(self) -> None:
         """Checks log directory.
@@ -109,11 +110,8 @@ class Trainer:
         self.logger.info(f"Train dataset size: {len(self.train_loader)}")
         self.logger.info(f"Test dataset size: {len(self.test_loader)}")
 
-    def train(self, epoch: int) -> float:
+    def train(self) -> float:
         """Trains model.
-
-        Args:
-            epoch (int): Current epoch.
 
         Returns:
             train_loss (float): Accumulated loss per iteration.
@@ -148,15 +146,12 @@ class Trainer:
 
         # Summary
         for key, value in loss_dict.items():
-            self.writer.add_scalar(f"train/{key}", value, epoch)
+            self.writer.add_scalar(f"train/{key}", value, self.epoch)
 
         return loss_dict["loss"]
 
-    def test(self, epoch: int) -> float:
+    def test(self) -> float:
         """Tests model.
-
-        Args:
-            epoch (int): Current epoch.
 
         Returns:
             test_loss (float): Accumulated loss per iteration.
@@ -179,16 +174,12 @@ class Trainer:
 
         # Summary
         for key, value in loss_dict.items():
-            self.writer.add_scalar(f"test/{key}", value, epoch)
+            self.writer.add_scalar(f"test/{key}", value, self.epoch)
 
         return loss_dict["loss"]
 
-    def save_checkpoint(self, epoch: int) -> None:
-        """Saves trained model and optimizer to checkpoint file.
-
-        Args:
-            epoch (int): Current epoch number.
-        """
+    def save_checkpoint(self) -> None:
+        """Saves trained model and optimizer to checkpoint file."""
 
         # Log
         self.logger.debug("Save trained model")
@@ -204,12 +195,12 @@ class Trainer:
 
         # Save model
         state_dict = {
-            "epoch": epoch,
+            "epoch": self.epoch,
             "model_state_dict": model_state_dict,
             "optimizer_state_dict": optimizer_state_dict,
         }
 
-        path = self.logdir / f"checkpoint_{epoch}.pt"
+        path = self.logdir / f"checkpoint_{self.epoch}.pt"
         torch.save(state_dict, path)
 
     def save_configs(self) -> None:
@@ -221,12 +212,8 @@ class Trainer:
         with (self.logdir / "config.json").open("w") as f:
             json.dump(config, f)
 
-    def save_plot(self, epoch: int) -> None:
-        """Plot and save a figure.
-
-        Args:
-            epoch (int): Number of epoch.
-        """
+    def save_plot(self) -> None:
+        """Plot and save a figure."""
 
         # Query y_target
         x_ctx, y_ctx, x_tgt, y_tgt = next(iter(self.test_loader))
@@ -251,9 +238,9 @@ class Trainer:
                          (mu - var ** 0.5).squeeze(-1)[0],
                          color="b", alpha=0.2, label="1-sigma range")
         plt.legend(loc="upper right")
-        plt.title(f"Training results (epoch={epoch})")
+        plt.title(f"Training results (epoch={self.epoch})")
         plt.tight_layout()
-        plt.savefig(self.logdir / f"fig_{epoch}.png")
+        plt.savefig(self.logdir / f"fig_{self.epoch}.png")
         plt.close()
 
     def quit(self) -> None:
@@ -285,19 +272,24 @@ class Trainer:
 
         # Run training
         self.logger.info("Start training")
+
         pbar = tqdm.trange(1, self.hparams["epochs"] + 1)
         postfix = {"train/loss": 0, "test/loss": 0}
-        for epoch in pbar:
+        self.epoch = 0
+
+        for _ in pbar:
+            self.epoch += 1
+
             # Training
-            train_loss = self.train(epoch)
+            train_loss = self.train()
             postfix["train/loss"] = train_loss
 
-            if epoch % self.hparams["log_save_interval"] == 0:
+            if self.epoch % self.hparams["log_save_interval"] == 0:
                 # Calculate test loss
-                test_loss = self.test(epoch)
+                test_loss = self.test()
                 postfix["test/loss"] = test_loss
-                self.save_checkpoint(epoch)
-                self.save_plot(epoch)
+                self.save_checkpoint()
+                self.save_plot()
 
             # Update postfix
             pbar.set_postfix(postfix)
