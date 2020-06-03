@@ -106,6 +106,9 @@ class Trainer:
             npr.GPDataset(train=False, **self.hparams["test_dataset_params"]),
             shuffle=False, batch_size=1)
 
+        self.logger.info(f"Train dataset size: {len(self.train_loader)}")
+        self.logger.info(f"Test dataset size: {len(self.test_loader)}")
+
     def train(self, epoch: int) -> float:
         """Trains model.
 
@@ -181,25 +184,32 @@ class Trainer:
 
         return loss_dict["loss"]
 
-    def save_checkpoint(self, epoch: int, loss: float) -> None:
+    def save_checkpoint(self, epoch: int) -> None:
         """Saves trained model and optimizer to checkpoint file.
 
         Args:
             epoch (int): Current epoch number.
-            loss (float): Saved loss value.
         """
 
         # Log
-        self.logger.debug(f"Eval loss (epoch={epoch}): {loss}")
         self.logger.debug("Save trained model")
+
+        # Remove unnecessary prefix from state dict keys
+        model_state_dict = {}
+        for k, v in self.model.state_dict().items():
+            model_state_dict[k.replace("module.", "")] = v
+
+        optimizer_state_dict = {}
+        for k, v in self.optimizer.state_dict().items():
+            optimizer_state_dict[k.replace("module.", "")] = v
 
         # Save model
         state_dict = {
             "epoch": epoch,
-            "model_state_dict": self.model.state_dict(),
-            "optimizer_state_dict": self.optimizer.state_dict(),
-            "loss": loss,
+            "model_state_dict": model_state_dict,
+            "optimizer_state_dict": optimizer_state_dict,
         }
+
         path = self.logdir / f"checkpoint_{epoch}.pt"
         torch.save(state_dict, path)
 
@@ -287,7 +297,7 @@ class Trainer:
                 # Calculate test loss
                 test_loss = self.test(epoch)
                 postfix["test/loss"] = test_loss
-                self.save_checkpoint(epoch, test_loss)
+                self.save_checkpoint(epoch)
                 self.save_plot(epoch)
 
             # Update postfix
