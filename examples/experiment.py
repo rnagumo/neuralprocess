@@ -135,13 +135,12 @@ class Trainer:
 
             # Forward
             self.optimizer.zero_grad()
-            with torch.autograd.detect_anomaly():
-                _tmp_loss_dict = self.model.loss_func(*data)
-                loss = _tmp_loss_dict["loss"]
+            _tmp_loss_dict = self.model.loss_func(*data)
+            loss = _tmp_loss_dict["loss"]
 
-                # Backward
-                loss.backward()
-                self.optimizer.step()
+            # Backward
+            loss.backward()
+            self.optimizer.step()
 
             # Save loss
             for key, value in _tmp_loss_dict.items():
