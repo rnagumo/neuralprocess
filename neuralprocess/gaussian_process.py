@@ -4,7 +4,7 @@
 Mainly used for data generation and model comparison.
 """
 
-from typing import Tuple
+from typing import Tuple, Optional, Union
 
 import torch
 from torch import Tensor
@@ -21,8 +21,13 @@ class GaussianProcess(torch.nn.Module):
     def __init__(self, l2_scale: float = 0.4, variance: float = 1.0):
         super().__init__()
 
-        self.l2_scale = l2_scale
-        self.variance = variance
+        # Original value
+        self._l2_scale = l2_scale
+        self._variance = variance
+
+        # Used in gaussian kernel (can be modified)
+        self.l2_scale_param = l2_scale
+        self.variance_param = variance
 
         # Saved training data
         self._x_train = None
@@ -82,10 +87,10 @@ class GaussianProcess(torch.nn.Module):
         diff = x1_unsq - x0_unsq
 
         # Norm (batch_size, num_points_0, num_points_1)
-        norm = ((diff / self.l2_scale) ** 2).sum(-1)
+        norm = ((diff / self.l2_scale_param) ** 2).sum(-1)
 
         # Gaussian kernel (batch_size, num_points_0, num_points_1)
-        kernel = self.variance * torch.exp(-0.5 * norm)
+        kernel = self.variance_param * torch.exp(-0.5 * norm)
 
         # Add some noise to the diagonal to make the cholesky work
         if kernel.size(1) == kernel.size(2):
@@ -167,17 +172,46 @@ class GaussianProcess(torch.nn.Module):
 
         return y_mean, y_cov
 
-    def sample(self, x: Tensor, y_dim: int = 1) -> Tensor:
+    def sample(self, x: Tensor, y_dim: int = 1, resample_params: bool = True,
+               single_params: bool = False, eps: float = 0.01) -> Tensor:
         """Samples function from GP.
 
         Args:
             x (torch.Tensor): Input tensor of size
                 `(batch_size. num_points, x_dim)`.
             y_dim (int, optional): Output y dim size.
+            resample_params (bool, optional): If `True`, resample kernel
+                parameters (default = `True`).
+            single_params (bool, optional): If `True`, resampled kernel
+                parameters are single values (default = `False`).
+            eps (float, optional): Lower bounds for sampled parameters.
 
         Returns:
             y (torch.Tensor): Sampled y `(batch_size, num_points, y_dim)`.
         """
+
+        # Resample params
+        if resample_params:
+            if single_params:
+                # Single value
+                l2_scale = torch.empty(1).uniform_(eps, self._l2_scale)
+                variance = torch.empty(1).uniform_(eps, self._variance)
+            else:
+                # Different values for each batch and each dim
+                batch, num, x_dim = x.size()
+                l2_scale = torch.empty(batch, x_dim).uniform_(
+                    eps, self._l2_scale)
+                variance = torch.empty(batch).uniform_(eps, self._variance)
+
+                # Resize: l2 (b, n1, n2, x_dim), var (b, n1, n2)
+                l2_scale = l2_scale.view(batch, 1, 1, x_dim)
+                variance = variance.view(batch, 1, 1)
+        else:
+            l2_scale = self._l2_scale
+            variance = self._variance
+
+        self.l2_scale_param = l2_scale
+        self.variance_param = variance
 
         # Sample mean and cov
         mean, cov = self.predict(x, y_dim=y_dim)
@@ -192,16 +226,3 @@ class GaussianProcess(torch.nn.Module):
         y = chol.matmul(torch.randn(batch_size, num_points, y_dim)) + mean
 
         return y
-
-    def resample_params(self, l2_scale: float = 1.0, variance: float = 1.0,
-                        eps: float = 1e-2) -> None:
-        """Resamples `l2_scale` and `variance` params.
-
-        Args:
-            l2_scale (float, optional): Upper bounds of `l2_scale` value.
-            variance (float, optional): Upper bounds of `variance` value.
-            eps (float, optional): Lower bounds of sampled values.
-        """
-
-        self.l2_scale = torch.rand((1,)).item() * l2_scale + eps
-        self.variance = torch.rand((1,)).item() * variance + eps

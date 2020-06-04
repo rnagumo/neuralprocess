@@ -111,12 +111,9 @@ class GPDataset(torch.utils.data.Dataset):
             # Expand x size (batch_size, num_points, x_dim)
             x = x.view(1, -1, 1).repeat(self.batch_size, 1, self.x_dim)
 
-        # Resample GP params
-        if resample_params:
-            self.gp.resample_params()
-
         # Sample y from GP prior
-        y = self.gp.sample(x, y_dim=self.y_dim)
+        y = self.gp.sample(
+            x, y_dim=self.y_dim, resample_params=resample_params)
 
         # Sample random data points as context from target
         _x_context = torch.empty(

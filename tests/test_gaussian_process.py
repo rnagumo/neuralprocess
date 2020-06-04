@@ -127,19 +127,22 @@ class TestGaussianProcess(unittest.TestCase):
         self.assertTupleEqual(y_sample.size(), (batch_size, num_points, y_dim))
 
         # Sample from posterior
-        x_sample = torch.randn(batch_size, num_points, x_dim)
+        x_sample = torch.randn(batch_size, num_points + 4, x_dim)
         self.model.fit(x, y)
         y_sample = self.model.sample(x_sample)
+        self.assertTupleEqual(
+            y_sample.size(), (batch_size, num_points + 4, y_dim))
+
+    def test_sample_without_resample(self):
+        batch_size = 5
+        num_points = 10
+        x_dim = 3
+        y_dim = 2
+        x = torch.randn(batch_size, num_points, x_dim)
+
+        # Sample from prior
+        y_sample = self.model.sample(x, y_dim, resample_params=False)
         self.assertTupleEqual(y_sample.size(), (batch_size, num_points, y_dim))
-
-    def test_resample_params(self):
-        self.model.resample_params()
-        self.assertTrue(0 < self.model.l2_scale < 1.01)
-        self.assertTrue(0 < self.model.variance < 1.01)
-
-        self.model.resample_params(l2_scale=2.0, variance=3.0, eps=1.0)
-        self.assertTrue(1.0 < self.model.l2_scale < 3.0)
-        self.assertTrue(1.0 < self.model.variance < 4.0)
 
 
 if __name__ == "__main__":
