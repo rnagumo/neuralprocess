@@ -25,9 +25,9 @@ class GaussianProcess(torch.nn.Module):
         self._l2_scale = l2_scale
         self._variance = variance
 
-        # Used in gaussian kernel (can be modified)
-        self.l2_scale_param = l2_scale
-        self.variance_param = variance
+        # Parameters used in gaussian kernel (can be modified)
+        self.l2_scale_param = torch.tensor([l2_scale])
+        self.variance_param = torch.tensor([variance])
 
         # Saved training data
         self._x_train = None
@@ -207,8 +207,8 @@ class GaussianProcess(torch.nn.Module):
                 l2_scale = l2_scale.view(batch, 1, 1, x_dim)
                 variance = variance.view(batch, 1, 1)
         else:
-            l2_scale = self._l2_scale
-            variance = self._variance
+            l2_scale = torch.tensor([self._l2_scale])
+            variance = torch.tensor([self._variance])
 
         self.l2_scale_param = l2_scale
         self.variance_param = variance
