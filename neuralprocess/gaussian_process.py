@@ -192,7 +192,7 @@ class GaussianProcess(torch.nn.Module):
 
         # Resample params
         if resample_params:
-            # if single_params is false, sample different values for each batch
+            # If single_params is false, sample values for each batch
             batch = 1 if single_params else x.size(0)
             l2_scale = torch.empty(batch).uniform_(eps, self._l2_scale)
             variance = torch.empty(batch).uniform_(eps, self._variance)
