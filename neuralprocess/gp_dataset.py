@@ -3,6 +3,8 @@
 
 from typing import Tuple
 
+import random
+
 import torch
 from torch import Tensor
 
@@ -85,14 +87,13 @@ class GPDataset(torch.utils.data.Dataset):
         """
 
         # Bounds number of dataset
-        num_context_max = max(self.num_context_min + 1, self.num_context_max)
-        num_target_max = max(self.num_target_min + 1, self.num_target_max)
+        num_context_max = max(self.num_context_min, self.num_context_max)
+        num_target_max = max(self.num_target_min, self.num_target_max)
 
         # Sample number of data points
-        num_context = \
-            torch.randint(self.num_context_min, num_context_max, (1,)).item()
+        num_context = random.randint(self.num_context_min, num_context_max)
         num_target = (
-            torch.randint(self.num_target_min, num_target_max, (1,)).item()
+            random.randint(self.num_target_min, num_target_max)
             if self.train else max(self.num_target_min, self.num_target_max))
 
         # Sample input x
