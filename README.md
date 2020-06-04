@@ -62,9 +62,12 @@ Original paper
 * M. Garnelo *et al*., "Neural Processes" ([arXiv](http://arxiv.org/abs/1807.01622))
 * M. Garnelo *et al*., "Conditional Neural Processes" ([arXiv](http://arxiv.org/abs/1807.01613))
 * H, Kim *et al*., "Attentive Neural Processes" ([arXiv](http://arxiv.org/abs/1901.05761))
-* J. Gordon *et al*., "Convolutional Conditional Neural Processes" ([arXiv](http://arxiv.org/abs/1910.13556))
 
 Sample code
 
 * DeepMind "The Neural Process Family" ([GitHub](https://github.com/deepmind/neural-processes))
+
+Others
+
+* J. Gordon *et al*., "Convolutional Conditional Neural Processes" ([arXiv](http://arxiv.org/abs/1910.13556))
 * cambridge-mlg "Convolutional Conditional Neural Processes" ([GitHub](https://github.com/cambridge-mlg/convcnp))
