@@ -1,10 +1,10 @@
 {
     "train_dataset_params": {
         "batch_size": 200,
-        "num_context_min": 20,
-        "num_context_max": 40,
+        "num_context_min": 30,
+        "num_context_max": 50,
         "num_target_min": 30,
-        "num_target_max": 50,
+        "num_target_max": 100,
         "x_dim": 1,
         "y_dim": 1,
         "gp_params": {}
@@ -17,25 +17,28 @@
         "num_target_max": 400,
         "x_dim": 1,
         "y_dim": 1,
-        "gp_params": {}
+        "gp_params": {
+            "l2_scale": 0.6,
+            "variance": 1.0
+        }
     },
     "cnp_params": {
         "x_dim": 1,
         "y_dim": 1,
-        "r_dim": 10
+        "r_dim": 32
     },
     "np_params": {
         "x_dim": 1,
         "y_dim": 1,
-        "r_dim": 10,
-        "z_dim": 10
+        "r_dim": 32,
+        "z_dim": 32
     },
     "anp_params": {
         "x_dim": 1,
         "y_dim": 1,
-        "r_dim": 10,
-        "s_dim": 10,
-        "z_dim": 10,
+        "r_dim": 32,
+        "s_dim": 32,
+        "z_dim": 32,
         "n_head": 8
     }
 }
