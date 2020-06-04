@@ -120,7 +120,7 @@ class Trainer:
         # Logger for loss
         loss_dict = collections.defaultdict(float)
 
-        # Resample dataset
+        # Resample dataset with/without kernel hyper-parameter update
         resample_params = self.hparams["model"] != "cnp"
         self.train_loader.dataset.generate_dataset(
             resample_params=resample_params)
