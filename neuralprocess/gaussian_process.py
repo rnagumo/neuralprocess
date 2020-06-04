@@ -4,7 +4,7 @@
 Mainly used for data generation and model comparison.
 """
 
-from typing import Tuple, Optional, Union
+from typing import Tuple
 
 import torch
 from torch import Tensor
