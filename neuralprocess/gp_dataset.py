@@ -96,7 +96,7 @@ class GPDataset(torch.utils.data.Dataset):
             random.randint(self.num_target_min, num_target_max)
             if self.train else max(self.num_target_min, self.num_target_max))
 
-        # Sample input x
+        # Sample input x for target
         if self.train:
             # For training, sample random points in range of [x_lb, x_ub]
             x = torch.rand(self.batch_size, num_target, self.x_dim)
@@ -108,11 +108,8 @@ class GPDataset(torch.utils.data.Dataset):
             # Uniformly distributed x
             x = torch.arange(x_lb, x_ub, (x_ub - x_lb) / num_target)
 
-            # Expand x_dim, size (num_points, x_dim)
-            x = x.view(-1, 1).repeat(1, self.x_dim)
-
-            # Expand batch, size (batch_size, num_points, x_dim)
-            x = x.repeat(self.batch_size, 1, 1)
+            # Expand x size (batch_size, num_points, x_dim)
+            x = x.view(1, -1, 1).repeat(self.batch_size, 1, self.x_dim)
 
         # Resample GP params
         if resample_params:
