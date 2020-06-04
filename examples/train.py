@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 import pathlib
+import random
 
 import torch
 
@@ -37,6 +38,7 @@ def main():
 
     # Random seed
     torch.manual_seed(args.seed)
+    random.seed(args.seed)
 
     # -------------------------------------------------------------------------
     # 2. Training
