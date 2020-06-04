@@ -21,8 +21,7 @@ from torch.nn import functional as F
 class ScaledDotProductAttention(nn.Module):
     """Scaled Dot-Product Attention."""
 
-    def forward(self, q: Tensor, k: Tensor, v: Tensor
-                ) -> Tensor:
+    def forward(self, q: Tensor, k: Tensor, v: Tensor) -> Tensor:
         """Forward method to return queried values.
 
         Input tensors' size should be `(batch, len, dim)` or
@@ -78,8 +77,7 @@ class MultiHeadAttention(nn.Module):
 
         self.attention = ScaledDotProductAttention()
 
-    def forward(self, q: Tensor, k: Tensor, v: Tensor
-                ) -> Tensor:
+    def forward(self, q: Tensor, k: Tensor, v: Tensor) -> Tensor:
         """Foward method.
 
         Args:
