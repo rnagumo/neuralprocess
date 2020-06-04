@@ -60,7 +60,8 @@ class GPDataset(torch.utils.data.Dataset):
         self.generate_dataset()
 
     def generate_dataset(self, x_ub: float = 2.0, x_lb: float = -2.0,
-                         resample_params: bool = False) -> None:
+                         resample_params: bool = False,
+                         single_params: bool = True) -> None:
         """Initializes dataset.
 
         Dataset sizes.
@@ -82,8 +83,10 @@ class GPDataset(torch.utils.data.Dataset):
         Args:
             x_ub (float, optional): Upper bound of x range.
             x_lb (float, optional): Lower bound of x range.
-            resample_params (bool, optional): If true, resample gaussian
+            resample_params (bool, optional): If `True`, resample gaussian
                 kernel parameters.
+            single_params (bool, optional): If `True`, resampled kernel
+                parameters are single values (default = `True`).
         """
 
         # Bounds number of dataset
@@ -114,7 +117,7 @@ class GPDataset(torch.utils.data.Dataset):
         # Sample y from GP prior
         y = self.gp.sample(
             x, y_dim=self.y_dim, resample_params=resample_params,
-            single_params=False)
+            single_params=single_params)
 
         # Sample random data points as context from target
         _x_context = torch.empty(
