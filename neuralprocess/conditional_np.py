@@ -132,9 +132,9 @@ class ConditionalNP(BaseNP):
         self.encoder = Encoder(x_dim, y_dim, r_dim)
         self.decoder = Decoder(x_dim, y_dim, r_dim)
 
-    def query(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
-              ) -> Tuple[Tensor, Tensor]:
-        """Query y target.
+    def sample(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
+               ) -> Tuple[Tensor, Tensor]:
+        """Samples queried y target.
 
         Args:
             x_context (torch.Tensor): x for context, size
@@ -173,7 +173,7 @@ class ConditionalNP(BaseNP):
             loss_dict (dict of [str, torch.Tensor]): Calculated loss.
         """
 
-        mu, var = self.query(x_context, y_context, x_target)
+        mu, var = self.sample(x_context, y_context, x_target)
 
         # Log likelihood
         dist = Normal(mu, var ** 0.5)

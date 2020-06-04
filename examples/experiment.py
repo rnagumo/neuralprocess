@@ -215,12 +215,12 @@ class Trainer:
     def save_plot(self) -> None:
         """Plot and save a figure."""
 
-        # Query y_target
+        # Sample y_target
         x_ctx, y_ctx, x_tgt, y_tgt = next(iter(self.test_loader))
         with torch.no_grad():
             data = (x_ctx.to(self.device), y_ctx.to(self.device),
                     x_tgt.to(self.device))
-            mu, var = self.model.query(*data)
+            mu, var = self.model.sample(*data)
 
         mu = mu.cpu()
         var = var.cpu()

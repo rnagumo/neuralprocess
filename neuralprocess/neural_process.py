@@ -132,7 +132,7 @@ class NeuralProcess(BaseNP):
     Attributes:
         encoder (Encoder): Encoder for representation.
         decoder (Decoder): Decoder for predicting y with representation and
-            query.
+            sample.
     """
 
     def __init__(self, x_dim: int, y_dim: int, r_dim: int, z_dim: int):
@@ -141,9 +141,9 @@ class NeuralProcess(BaseNP):
         self.encoder = Encoder(x_dim, y_dim, r_dim, z_dim)
         self.decoder = Decoder(x_dim, y_dim, z_dim)
 
-    def query(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
-              ) -> Tuple[Tensor, Tensor]:
-        """Query y target.
+    def sample(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
+               ) -> Tuple[Tensor, Tensor]:
+        """Samples queried y target.
 
         Args:
             x_context (torch.Tensor): x for context, size

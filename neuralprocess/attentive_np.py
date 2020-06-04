@@ -205,9 +205,9 @@ class AttentiveNP(BaseNP):
         self.decoder = Decoder(x_dim, y_dim, r_dim, z_dim)
         self.attention = MultiHeadAttention(x_dim, r_dim, x_dim, r_dim, n_head)
 
-    def query(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
-              ) -> Tuple[Tensor, Tensor]:
-        """Query y target.
+    def sample(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
+               ) -> Tuple[Tensor, Tensor]:
+        """Samples queried y target.
 
         Args:
             x_context (torch.Tensor): x for context, size

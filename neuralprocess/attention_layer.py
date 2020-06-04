@@ -29,7 +29,7 @@ class ScaledDotProductAttention(nn.Module):
         `(batch, num, len, dim)`.
 
         Args:
-            q (torch.Tensor): Query of size `(*, len_q, d_k)`.
+            q (torch.Tensor): sample of size `(*, len_q, d_k)`.
             k (torch.Tensor): Key of size `(*, len_k, d_k)`.
             v (torch.Tensor): Value of size `(*, len_k, d_v)`.
 

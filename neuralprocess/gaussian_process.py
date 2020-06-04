@@ -128,7 +128,7 @@ class GaussianProcess(torch.nn.Module):
             y_mean (torch.Tensor): Predicted output, size
                 `(batch_size, num_points, y_dim)`.
             y_cov (torch.Tensor): Covariance of the joint predictive
-                distribution at the query points, size
+                distribution at the sample points, size
                 `(batch_size, num_points, num_points)`.
         """
 

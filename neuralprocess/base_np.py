@@ -28,12 +28,12 @@ class BaseNP(nn.Module):
                 representation, size `(batch_size, num_target, y_dim)`.
         """
 
-        mu, _ = self.query(x_context, y_context, x_target)
+        mu, _ = self.sample(x_context, y_context, x_target)
         return mu
 
-    def query(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
-              ) -> Tuple[Tensor, Tensor]:
-        """Query y target.
+    def sample(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
+               ) -> Tuple[Tensor, Tensor]:
+        """Samples queried y target.
 
         Args:
             x_context (torch.Tensor): x for context, size

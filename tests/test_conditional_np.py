@@ -14,7 +14,7 @@ class TestConditionalNP(unittest.TestCase):
         self.r_dim = 4
         self.model = npr.ConditionalNP(self.x_dim, self.y_dim, self.r_dim)
 
-    def test_query(self):
+    def test_sample(self):
         # Data
         batch_size = 12
         num_context = 6
@@ -24,7 +24,7 @@ class TestConditionalNP(unittest.TestCase):
         x_target = torch.randn(batch_size, num_target, self.x_dim)
 
         # Forward
-        mu, var = self.model.query(x_context, y_context, x_target)
+        mu, var = self.model.sample(x_context, y_context, x_target)
 
         self.assertTupleEqual(mu.size(), (batch_size, num_target, self.y_dim))
         self.assertTupleEqual(
