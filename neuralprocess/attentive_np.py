@@ -254,6 +254,9 @@ class AttentiveNP(BaseNP):
             loss_dict (dict of [str, torch.Tensor]): Calculated loss.
         """
 
+        # Data size
+        num_target = x_target.size(1)
+
         # Stochastic latents
         mu_z_t, var_z_t = self.encoder_z(x_target, y_target)
         z = mu_z_t + (var_z_t ** 0.5) * torch.randn_like(var_z_t)
@@ -265,14 +268,13 @@ class AttentiveNP(BaseNP):
         # Negative Log likelihood
         mu, var = self.decoder(x_target, r, z)
         nll = nll_normal(y_target, mu, var)
-        nll = nll.mean()
 
         # KL divergence KL(N(mu_z_t, var_z_t^0.5) || N(mu_z_c, var_z_c^0.5))
         mu_z_c, var_z_c = self.encoder_z(x_context, y_context)
         kl_div = kl_divergence_normal(mu_z_t, var_z_t, mu_z_c, var_z_c)
-        kl_div = kl_div.mean()
+        kl_div = kl_div.view(-1, 1).repeat(1, num_target)
 
         # ELBO loss
-        loss = nll + kl_div
+        loss = (nll + kl_div).mean()
 
-        return {"loss": loss, "nll": nll, "kl": kl_div}
+        return {"loss": loss, "nll": nll.mean(), "kl": kl_div.mean()}
