@@ -113,7 +113,8 @@ class GPDataset(torch.utils.data.Dataset):
 
         # Sample y from GP prior
         y = self.gp.sample(
-            x, y_dim=self.y_dim, resample_params=resample_params)
+            x, y_dim=self.y_dim, resample_params=resample_params,
+            single_params=False)
 
         # Sample random data points as context from target
         _x_context = torch.empty(

@@ -173,7 +173,7 @@ class GaussianProcess(torch.nn.Module):
         return y_mean, y_cov
 
     def sample(self, x: Tensor, y_dim: int = 1, resample_params: bool = True,
-               single_params: bool = False, eps: float = 0.01) -> Tensor:
+               single_params: bool = True, eps: float = 0.01) -> Tensor:
         """Samples function from GP.
 
         Args:
@@ -183,7 +183,7 @@ class GaussianProcess(torch.nn.Module):
             resample_params (bool, optional): If `True`, resample kernel
                 parameters (default = `True`).
             single_params (bool, optional): If `True`, resampled kernel
-                parameters are single values (default = `False`).
+                parameters are single values (default = `True`).
             eps (float, optional): Lower bounds for sampled parameters.
 
         Returns:
