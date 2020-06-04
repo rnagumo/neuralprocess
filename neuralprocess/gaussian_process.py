@@ -192,25 +192,17 @@ class GaussianProcess(torch.nn.Module):
 
         # Resample params
         if resample_params:
-            if single_params:
-                # Single value
-                l2_scale = torch.empty(1).uniform_(eps, self._l2_scale)
-                variance = torch.empty(1).uniform_(eps, self._variance)
-            else:
-                # Sample different values for each batch
-                batch = x.size(0)
-                l2_scale = torch.empty(batch).uniform_(eps, self._l2_scale)
-                variance = torch.empty(batch).uniform_(eps, self._variance)
-
-                # Resize: l2 = (b, n1, n2, x_dim), var = (b, n1, n2)
-                l2_scale = l2_scale.view(batch, 1, 1, 1)
-                variance = variance.view(batch, 1, 1)
+            # if single_params is false, sample different values for each batch
+            batch = 1 if single_params else x.size(0)
+            l2_scale = torch.empty(batch).uniform_(eps, self._l2_scale)
+            variance = torch.empty(batch).uniform_(eps, self._variance)
         else:
             l2_scale = torch.tensor([self._l2_scale])
             variance = torch.tensor([self._variance])
 
-        self.l2_scale_param = l2_scale
-        self.variance_param = variance
+        # Resize: l2 = (b, n1, n2, x_dim), var = (b, n1, n2)
+        self.l2_scale_param = l2_scale.view(-1, 1, 1, 1)
+        self.variance_param = variance.view(-1, 1, 1)
 
         # Sample mean and cov
         mean, cov = self.predict(x, y_dim=y_dim)

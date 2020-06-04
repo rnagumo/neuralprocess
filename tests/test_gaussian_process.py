@@ -123,7 +123,11 @@ class TestGaussianProcess(unittest.TestCase):
         y = torch.randn(batch_size, num_points, y_dim)
 
         # Sample from prior
-        y_sample = self.model.sample(x, y_dim)
+        y_sample = self.model.sample(x, y_dim, single_params=True)
+        self.assertTupleEqual(y_sample.size(), (batch_size, num_points, y_dim))
+
+        # Sample params
+        y_sample = self.model.sample(x, y_dim, single_params=False)
         self.assertTupleEqual(y_sample.size(), (batch_size, num_points, y_dim))
 
         # Sample from posterior
