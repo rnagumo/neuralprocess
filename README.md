@@ -49,10 +49,10 @@ Train models. Shell scripts in `bin` folder contains the necessary settings for 
 
 ```bash
 # Usage
-bash bin/train.sh <model-name> <random-seed>
+bash bin/train.sh <model-name>
 
 # Example
-bash bin/train.sh cnp 0
+bash bin/train.sh cnp
 ```
 
 # Reference
