@@ -33,7 +33,6 @@ class Encoder(nn.Module):
             nn.Linear(64, 64),
             nn.ReLU(),
             nn.Linear(64, r_dim),
-            nn.Sigmoid(),
         )
         self.fc_mu = nn.Linear(r_dim, z_dim)
         self.fc_var = nn.Linear(r_dim, z_dim)
