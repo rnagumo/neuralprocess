@@ -7,3 +7,4 @@ from .neural_process import NeuralProcess
 from .attentive_np import AttentiveNP
 from .attention_layer import (ScaledDotProductAttention, MultiHeadAttention,
                               SelfAttention)
+from .doublepath_np import DoublePathNP
