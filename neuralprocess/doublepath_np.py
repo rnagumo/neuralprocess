@@ -1,7 +1,8 @@
 
 """Double-path Neural Process.
 
-Neural Process in "Attentive Neural Processes" paper.
+Neural Process in "Attentive Neural Processes" paper, which has two latent
+path (deterministic path and stochastic path).
 
 H. Kim et al., "Attentive Neural Processes".
 http://arxiv.org/abs/1901.05761
@@ -18,6 +19,9 @@ from .base_np import BaseNP, kl_divergence_normal, nll_normal
 
 class DeterministicEncoder(nn.Module):
     """Deterministic encoder.
+
+    1. Encode each context to representation `r_i`.
+    2. Aggregate all representations `r_C`.
 
     Args:
         x_dim (int): Dimension size of x.
@@ -72,7 +76,6 @@ class StochasticEncoder(nn.Module):
         y_dim (int): Dimension size of y.
         s_dim (int): Dimension size of s (deterministic representation).
         z_dim (int): Dimension size of z (stochastic latent).
-        n_head (int): Number of head in self-attention module.
     """
 
     def __init__(self, x_dim: int, y_dim: int, s_dim: int, z_dim: int):
@@ -149,7 +152,7 @@ class Decoder(nn.Module):
             x (torch.Tensor): x context data, size
                 `(batch_size, num_points, x_dim)`.
             r (torch.Tensor): Deterministic representation, size
-                `(batch_size, num_points, r_dim)`.
+                `(batch_size, r_dim)`.
             z (torch.Tensor): Stochastic latents, size `(batch_size, z_dim)`.
 
         Returns:
@@ -191,7 +194,6 @@ class DoublePathNP(BaseNP):
         encoder_z (StochasticEncoder): Encoder for stochastic latent `z`.
         decoder (Decoder): Decoder for predicting y with representation and
             query.
-        attention (MultiHeadAttention): Cross attention layer.
     """
 
     def __init__(self, x_dim: int, y_dim: int, r_dim: int, s_dim: int,
@@ -235,7 +237,7 @@ class DoublePathNP(BaseNP):
 
     def loss_func(self, x_context: Tensor, y_context: Tensor, x_target: Tensor,
                   y_target: Tensor) -> Dict[str, Tensor]:
-        """Loss function for the negative conditional log probability.
+        """Loss function for ELBO.
 
         Args:
             x_context (torch.Tensor): x for context, size

@@ -171,7 +171,7 @@ class NeuralProcess(BaseNP):
 
     def loss_func(self, x_context: Tensor, y_context: Tensor, x_target: Tensor,
                   y_target: Tensor) -> Dict[str, Tensor]:
-        """Loss function for the negative conditional log probability.
+        """Loss function for ELBO.
 
         Args:
             x_context (torch.Tensor): x for context, size
