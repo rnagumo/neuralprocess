@@ -47,7 +47,7 @@ class DeterministicEncoder(nn.Module):
                 `(batch_size, num_points, y_dim)`.
 
         Returns:
-            r (torch.Tensor): Aggregated representation, size
+            r (torch.Tensor): Representations for each data,
                 `(batch_size, num_points, r_dim)`.
         """
 
