@@ -55,6 +55,62 @@ bash bin/train.sh <model-name>
 bash bin/train.sh cnp
 ```
 
+# Examples
+
+## Training
+
+```python
+import torch
+import neuralprocess as npr
+
+# Dataset
+loader = torch.utils.data.DataLoader(
+    npr.GPDataset(train=True, batch_size=16), batch_size=1)
+
+# Model
+model = npr.ConditionalNP(x_dim=1, y_dim=1, r_dim=32)
+optimizer = torch.optim.Adam(model.parameters())
+
+# Train
+for data in loader:
+    loss_dict = model.loss_func(*data)
+    loss = loss_dict["loss"].mean()
+    loss.backward()
+    optimizer.step()
+```
+
+## Test
+
+```python
+import torch
+import neuralprocess as npr
+
+# Dataset
+loader = torch.utils.data.DataLoader(
+    npr.GPDataset(train=False, batch_size=16), batch_size=1)
+
+# Load pre-trained model
+model = npr.ConditionalNP(x_dim=1, y_dim=1, r_dim=32)
+cp = torch.load("./logs/cnp/checkpoint.pt")
+model.load_state_dict(cp["model_state_dict"])
+
+# Sample data
+x_c, y_c, x_t, y_t = next(iter(loader))
+y_mu, y_var = model.sample(x_c, y_c, x_t)
+
+print(y_t.size(), y_mu.size(), y_var.size())
+# -> torch.Size([1, 10, 1]) torch.Size([1, 10, 1]) torch.Size([1, 10, 1])
+```
+
+# Results
+
+|model|results|
+|:-:|:-:|
+|Gaussian Process|![gp](./images/gp.png)|
+|Neural Process|![gp](./images/np.png)|
+|Conditional Neural Process|![gp](./images/cnp.png)|
+|Attentive Neural Process|![gp](./images/anp.png)|
+
 # Reference
 
 Original paper
