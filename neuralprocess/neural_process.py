@@ -30,9 +30,9 @@ class Encoder(nn.Module):
         self.fc = nn.Sequential(
             nn.Linear(x_dim + y_dim, 128),
             nn.ReLU(),
-            nn.Linear(128, 128),
+            nn.Linear(128, 256),
             nn.ReLU(),
-            nn.Linear(128, 128),
+            nn.Linear(256, 128),
             nn.ReLU(),
             nn.Linear(128, r_dim),
         )
@@ -83,8 +83,6 @@ class Decoder(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(x_dim + z_dim, 128),
-            nn.ReLU(),
-            nn.Linear(128, 128),
             nn.ReLU(),
             nn.Linear(128, 128),
             nn.ReLU(),
