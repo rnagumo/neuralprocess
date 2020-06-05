@@ -121,7 +121,7 @@ class Trainer:
         loss_dict = collections.defaultdict(float)
 
         # Resample dataset with/without kernel hyper-parameter update
-        resample_params = self.hparams["model"] == "anp"
+        resample_params = self.hparams["model"] in ("dnp", "anp")
         self.train_loader.dataset.generate_dataset(
             resample_params=resample_params, single_params=False)
 

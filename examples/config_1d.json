@@ -36,6 +36,13 @@
         "r_dim": 128,
         "z_dim": 128
     },
+    "dnp_params": {
+        "x_dim": 1,
+        "y_dim": 1,
+        "r_dim": 128,
+        "s_dim": 128,
+        "z_dim": 128
+    },
     "anp_params": {
         "x_dim": 1,
         "y_dim": 1,
