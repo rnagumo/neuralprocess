@@ -32,8 +32,6 @@ class Encoder(nn.Module):
             nn.ReLU(),
             nn.Linear(64, 64),
             nn.ReLU(),
-            nn.Linear(64, 64),
-            nn.ReLU(),
             nn.Linear(64, r_dim),
         )
         self.fc_mu = nn.Linear(r_dim, z_dim)
