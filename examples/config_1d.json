@@ -25,20 +25,20 @@
     "cnp_params": {
         "x_dim": 1,
         "y_dim": 1,
-        "r_dim": 32
+        "r_dim": 128
     },
     "np_params": {
         "x_dim": 1,
         "y_dim": 1,
-        "r_dim": 32,
-        "z_dim": 32
+        "r_dim": 128,
+        "z_dim": 128
     },
     "anp_params": {
         "x_dim": 1,
         "y_dim": 1,
-        "r_dim": 32,
-        "s_dim": 32,
-        "z_dim": 32,
+        "r_dim": 128,
+        "s_dim": 128,
+        "z_dim": 128,
         "n_head": 8
     }
 }
