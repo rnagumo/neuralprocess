@@ -18,6 +18,8 @@ from .base_np import BaseNP, kl_divergence_normal, nll_normal
 class DeterministicEncoder(nn.Module):
     """Deterministic encoder.
 
+    1. Encode each context to representation `r_i`.
+
     Args:
         x_dim (int): Dimension size of x.
         y_dim (int): Dimension size of y.
@@ -47,7 +49,7 @@ class DeterministicEncoder(nn.Module):
                 `(batch_size, num_points, y_dim)`.
 
         Returns:
-            r (torch.Tensor): Aggregated representation, size
+            r (torch.Tensor): Representations for each data,
                 `(batch_size, num_points, r_dim)`.
         """
 
@@ -177,7 +179,7 @@ class Decoder(nn.Module):
 
 
 class AttentiveNP(BaseNP):
-    """Neural Process class.
+    """Attentive Neural Process class.
 
     Args:
         x_dim (int): Dimension size of x.
@@ -238,7 +240,7 @@ class AttentiveNP(BaseNP):
 
     def loss_func(self, x_context: Tensor, y_context: Tensor, x_target: Tensor,
                   y_target: Tensor) -> Dict[str, Tensor]:
-        """Loss function for the negative conditional log probability.
+        """Loss function for ELBO.
 
         Args:
             x_context (torch.Tensor): x for context, size

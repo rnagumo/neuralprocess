@@ -107,9 +107,10 @@ print(y_t.size(), y_mu.size(), y_var.size())
 |model|results|
 |:-:|:-:|
 |Gaussian Process|![gp](./images/gp.png)|
-|Neural Process|![gp](./images/np.png)|
-|Conditional Neural Process|![gp](./images/cnp.png)|
-|Attentive Neural Process|![gp](./images/anp.png)|
+|Conditional Neural Process|![cnp](./images/cnp.png)|
+|Neural Process|![np](./images/np.png)|
+|Neural Process (double latent path)|![dnp](./images/dnp.png)|
+|Attentive Neural Process|![anp](./images/anp.png)|
 
 # Reference
 
