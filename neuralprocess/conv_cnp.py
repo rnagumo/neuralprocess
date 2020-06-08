@@ -70,15 +70,15 @@ class Encoder(nn.Module):
 
     Args:
         y_dim (int): Dimension size of y.
-        z_dim (int): Dimension size of z (latents).
+        h_dim (int): Dimension size of h (representation).
         length_scale (int): Initial length scale of RBF kernel.
     """
 
-    def __init__(self, y_dim: int, z_dim: int, length_scale: int):
+    def __init__(self, y_dim: int, h_dim: int, length_scale: int):
         super().__init__()
 
         self.fc = nn.Sequential(
-            nn.Linear(y_dim + 1, z_dim),
+            nn.Linear(y_dim + 1, h_dim),
         )
 
         # Scale parameter for RBF kernel
@@ -95,7 +95,7 @@ class Encoder(nn.Module):
             t (torch.Tensor): Uniform grid, size `(b, m, x_dim)`.
 
         Returns:
-            z (torch.Tensor): Encoded representation, size `(b, m, z_dim)`.
+            z (torch.Tensor): Encoded representation, size `(b, m, h_dim)`.
         """
 
         # Data size
@@ -106,53 +106,53 @@ class Encoder(nn.Module):
 
         # Add extra 'density' channel (b, n, y_dim + 1)
         density = y.new_ones((batch_size, n_in, 1))
-        z = torch.cat([density, y], dim=-1)
+        h = torch.cat([density, y], dim=-1)
 
         # Perform compute (b, n, m, y_dim + 1)
-        z = z.unsqueeze(2) * weight
+        h = h.unsqueeze(2) * weight
 
         # Sum over inputs (b, m, y_dim + 1)
-        z = z.sum(1)
+        h = h.sum(1)
 
         # Normalize 'convoluion' channels excluding 'density' channel
-        density = z[..., :1]
-        conv = z[..., 1:]
+        density = h[..., :1]
+        conv = h[..., 1:]
         normalized = conv / (density + 1e-8)
-        z = torch.cat([density, normalized], dim=-1)
+        h = torch.cat([density, normalized], dim=-1)
 
         # Apply point-wise function
-        z = self.fc(z)
+        h = self.fc(h)
 
-        return z
+        return h
 
 
 class Decoder(nn.Module):
     """Encoder for ConvCNP.
 
     Args:
-        z_dim (int): Dimension size of x.
-        z_dim (int): Dimension size of z (latents).
+        h_dim (int): Dimension size of representation h.
+        y_dim (int): Dimension size of output y.
         length_scale (int): Initial length scale of RBF kernel.
     """
 
-    def __init__(self, z_dim: int, y_dim: int, length_scale: int):
+    def __init__(self, h_dim: int, y_dim: int, length_scale: int):
         super().__init__()
 
         self.fc = nn.Sequential(
-            nn.Linear(z_dim, y_dim),
+            nn.Linear(h_dim, y_dim),
         )
 
         # Scale parameter for RBF kernel
         self.sigma = nn.Parameter(
-            torch.ones(z_dim) * math.log(length_scale),
+            torch.ones(h_dim) * math.log(length_scale),
             requires_grad=True)
 
-    def forward(self, t: Tensor, z: Tensor, x: Tensor) -> Tensor:
+    def forward(self, t: Tensor, h: Tensor, x: Tensor) -> Tensor:
         """Forward
 
         Args:
             t (torch.Tensor): Uniform grid, size `(b, n, x_dim)`.
-            z (torch.Tensor): Latent, size `(b, n, z_dim)`.
+            h (torch.Tensor): Latent, size `(b, n, h_dim)`.
             x (torch.Tensor): X target data, size `(b, m, x_dim)`.
 
         Returns:
@@ -166,7 +166,7 @@ class Decoder(nn.Module):
         weight = rbf_kernel(t, x, self.sigma)
 
         # Perform compute (b, n, m, y_dim)
-        y_out = z.unsqueeze(2) * weight
+        y_out = h.unsqueeze(2) * weight
 
         # Sum over inputs (b, m, y_dim)
         y_out = y_out.sum(1)
@@ -181,23 +181,27 @@ class ConvCNP(BaseNP):
     """One-dimensional Convolutional Conditional Neural Process model.
 
     Args:
+        x_dim (int): Dimension size of x input.
+        y_dim (int): Dimension size of y output.
+        h_dim (int, optional): Dimension size of hidden representation.
+        points_per_unit (int, optional): Number of grid points per unit.
     """
 
-    def __init__(self, x_dim: int, y_dim: int, z_dim: int,
-                 points_per_unit: int):
+    def __init__(self, x_dim: int, y_dim: int, h_dim: int = 8,
+                 points_per_unit: int = 64):
         super().__init__()
 
         self.points_per_unit = points_per_unit
 
         # Convolution layer
         self.conv = nn.Sequential(
-            nn.Conv1d(z_dim, 16, kernel_size=5, stride=1, padding=2),
+            nn.Conv1d(h_dim, 16, kernel_size=5, stride=1, padding=2),
             nn.ReLU(),
             nn.Conv1d(16, 32, kernel_size=5, stride=1, padding=2),
             nn.ReLU(),
             nn.Conv1d(32, 16, kernel_size=5, stride=1, padding=2),
             nn.ReLU(),
-            nn.Conv1d(16, z_dim, kernel_size=5, stride=1, padding=2),
+            nn.Conv1d(16, h_dim, kernel_size=5, stride=1, padding=2),
             nn.ReLU(),
         )
         num_layers = 0
@@ -205,9 +209,9 @@ class ConvCNP(BaseNP):
 
         # Layers
         length_scale = 2.0 / points_per_unit
-        self.encoder = Encoder(y_dim, z_dim, length_scale)
-        self.mu_decoder = Decoder(z_dim, y_dim, length_scale)
-        self.var_decoder = Decoder(z_dim, y_dim, length_scale)
+        self.encoder = Encoder(y_dim, h_dim, length_scale)
+        self.mu_decoder = Decoder(h_dim, y_dim, length_scale)
+        self.var_decoder = Decoder(h_dim, y_dim, length_scale)
 
     def sample(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
                ) -> Tuple[Tensor, Tensor]:
@@ -242,17 +246,17 @@ class ConvCNP(BaseNP):
         x_grid = torch.linspace(x_min, x_max, num_points).to(device)
         x_grid = x_grid.view(1, -1, 1).repeat(batch, 1, 1)
 
-        # Encode (batch, num_points, z_dim)
-        z = torch.sigmoid(self.encoder(x_context, y_context, x_grid))
+        # Encode (batch, num_points, h_dim)
+        h = torch.sigmoid(self.encoder(x_context, y_context, x_grid))
 
-        # Convolution (batch, num_points, z_dim)
-        z = z.permute(0, 2, 1)
-        z = self.conv(z)
-        z = z.permute(0, 2, 1)
+        # Convolution (batch, num_points, h_dim)
+        h = h.permute(0, 2, 1)
+        h = self.conv(h)
+        h = h.permute(0, 2, 1)
 
         # Decode
-        mu = self.mu_decoder(x_grid, z, x_target)
-        var = F.softplus(self.var_decoder(x_grid, z, x_target))
+        mu = self.mu_decoder(x_grid, h, x_target)
+        var = F.softplus(self.var_decoder(x_grid, h, x_target))
 
         return mu, var
 

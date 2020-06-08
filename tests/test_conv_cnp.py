@@ -11,10 +11,10 @@ class TestConvCNP(unittest.TestCase):
     def setUp(self):
         self.x_dim = 3
         self.y_dim = 2
-        self.z_dim = 8
+        self.h_dim = 8
         points_per_unit = 64
         self.model = npr.ConvCNP(
-            self.x_dim, self.y_dim, self.z_dim, points_per_unit)
+            self.x_dim, self.y_dim, self.h_dim, points_per_unit)
 
     def test_sample(self):
         # Data
