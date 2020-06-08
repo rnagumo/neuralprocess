@@ -210,8 +210,8 @@ class ConvCNP(BaseNP):
         # Layers
         length_scale = 2.0 / points_per_unit
         self.encoder = Encoder(y_dim, h_dim, length_scale)
-        self.mu_decoder = Decoder(h_dim, y_dim, length_scale)
-        self.var_decoder = Decoder(h_dim, y_dim, length_scale)
+        self.decoder_mu = Decoder(h_dim, y_dim, length_scale)
+        self.decoder_var = Decoder(h_dim, y_dim, length_scale)
 
     def sample(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
                ) -> Tuple[Tensor, Tensor]:
@@ -255,8 +255,8 @@ class ConvCNP(BaseNP):
         h = h.permute(0, 2, 1)
 
         # Decode
-        mu = self.mu_decoder(x_grid, h, x_target)
-        var = F.softplus(self.var_decoder(x_grid, h, x_target))
+        mu = self.decoder_mu(x_grid, h, x_target)
+        var = F.softplus(self.decoder_var(x_grid, h, x_target))
 
         return mu, var
 
