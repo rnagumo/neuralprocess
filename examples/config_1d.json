@@ -60,8 +60,8 @@
     "fnp_params": {
         "x_dim": 1,
         "y_dim": 1,
-        "h_dim": 128,
-        "u_dim": 128,
-        "z_dim": 128
+        "h_dim": 100,
+        "u_dim": 3,
+        "z_dim": 50
     }
 }
