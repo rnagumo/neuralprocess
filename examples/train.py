@@ -51,6 +51,7 @@ def main():
         "dnp": npr.DoublePathNP,
         "anp": npr.AttentiveNP,
         "convcnp": npr.ConvCNP,
+        "fnp": npr.FunctionalNP,
     }
     model = model_dict[args.model](**config[f"{args.model}_params"])
 
