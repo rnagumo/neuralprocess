@@ -30,7 +30,7 @@ def logitexp(logp: Tensor) -> Tensor:
         logp (torch.Tensor): Log probability.
 
     Returns:
-        logit (torch.Tensor): Exponentialized value.
+        logit (torch.Tensor): Logit.
     """
 
     pos = torch.clamp(logp, min=-math.log(2))
@@ -73,7 +73,7 @@ class DAGEmbedding(nn.Module):
         return graph, bipartite
 
     def _sample_dag(self, u_c: Tensor) -> Tensor:
-        """Sample DAG from context data.
+        """Samples DAG from context data: p(G|U_R).
 
         Args:
             u_c (torch.Tensor): u input for context, size `(b, n, u_dim)`.
@@ -116,7 +116,7 @@ class DAGEmbedding(nn.Module):
         return graph
 
     def _sample_bipartite(self, u_c: Tensor, u_t: Tensor) -> Tensor:
-        """Sample bipartite.
+        """Samples bipartite: p(A|U_R, U_M).
 
         Args:
             u_c (torch.Tensor): u input for context, size `(b, n, u_dim)`.
