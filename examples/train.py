@@ -50,6 +50,7 @@ def main():
         "np": npr.NeuralProcess,
         "dnp": npr.DoublePathNP,
         "anp": npr.AttentiveNP,
+        "convcnp": npr.ConvCNP,
     }
     model = model_dict[args.model](**config[f"{args.model}_params"])
 
