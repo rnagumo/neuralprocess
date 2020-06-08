@@ -49,10 +49,15 @@ class TestFunctionalNP(unittest.TestCase):
 
         self.assertIsInstance(loss_dict, dict)
         self.assertIsInstance(loss_dict["loss"], torch.Tensor)
+        self.assertTrue(loss_dict["loss"] > 0)
         self.assertIsInstance(loss_dict["nll_loss_c"], torch.Tensor)
+        self.assertTrue(loss_dict["nll_loss_c"] > 0)
         self.assertIsInstance(loss_dict["kl_loss_c"], torch.Tensor)
-        self.assertIsInstance(loss_dict["nll_loss_t"], torch.Tensor)
-        self.assertIsInstance(loss_dict["kl_loss_t"], torch.Tensor)
+        self.assertTrue(loss_dict["kl_loss_c"] > 0)
+        self.assertIsInstance(loss_dict["nll_loss_c"], torch.Tensor)
+        self.assertTrue(loss_dict["nll_loss_c"] > 0)
+        self.assertIsInstance(loss_dict["kl_loss_c"], torch.Tensor)
+        self.assertTrue(loss_dict["kl_loss_c"] > 0)
 
     def test_forward(self):
         # Data

@@ -18,7 +18,7 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 from torch.distributions import RelaxedBernoulli
 
-from .base_np import BaseNP, kl_divergence_normal, nll_normal
+from .base_np import BaseNP, nll_normal
 
 
 def logitexp(logp: Tensor) -> Tensor:
@@ -221,8 +221,9 @@ class FunctionalNP(BaseNP):
         u_t = (mu_u_t
                + F.softplus(0.5 * logvar_u_t) * torch.randn_like(logvar_u_t))
 
-        # Sample G, A
+        # Sample A
         _, bipartite = self.p_ga(u_c, u_t)
+        bipartite = bipartite / (bipartite.sum(dim=-1, keepdim=True) + 1e-8)
 
         mu_qz_c, logvar_qz_c = torch.chunk(self.q_z(h_c), 2, -1)
         mu_qy_c, logvar_qy_c = torch.chunk(self.g_y(y_context), 2, -1)
@@ -231,11 +232,12 @@ class FunctionalNP(BaseNP):
         mu_pz_c = bipartite.matmul(mu_qy_c + mu_qz_c)
         logvar_pz_c = bipartite.matmul(logvar_qy_c + logvar_qz_c)
 
+        # Sample z ~ p(z|par(R, y_R))
         z_c = (
             mu_pz_c
             + (F.softplus(0.5 * logvar_pz_c)) * torch.randn_like(logvar_pz_c))
 
-        # Decode
+        # Decode y: p(y|z)
         mu_py_t, logvar_py_t = torch.chunk(self.p_y(z_c), 2, dim=-1)
         var_py_t = F.softplus(logvar_py_t)
 
@@ -303,10 +305,10 @@ class FunctionalNP(BaseNP):
         logvar_pz_t = bipartite.matmul(logvar_qy_c + logvar_qz_c)
 
         # Calculate KL loss: -E_{q(z|x)}[log p(z|x, y) - log q(z|x)]
-        kl_pqz_c = (nll_normal(z_c, mu_qz_c, F.softplus(logvar_qz_c))
-                    - nll_normal(z_c, mu_pz_c, F.softplus(logvar_pz_c)))
-        kl_pqz_t = (nll_normal(z_t, mu_qz_t, F.softplus(logvar_qz_t))
-                    - nll_normal(z_t, mu_pz_t, F.softplus(logvar_pz_t)))
+        kl_pqz_c = (nll_normal(z_c, mu_pz_c, F.softplus(logvar_pz_c))
+                    - nll_normal(z_c, mu_qz_c, F.softplus(logvar_qz_c)))
+        kl_pqz_t = (nll_normal(z_t, mu_pz_t, F.softplus(logvar_pz_t))
+                    - nll_normal(z_t, mu_qz_t, F.softplus(logvar_qz_t)))
 
         # Decode y
         mu_py_c, logvar_py_c = torch.chunk(self.p_y(z_c), 2, dim=-1)
