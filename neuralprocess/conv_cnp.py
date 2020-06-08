@@ -22,14 +22,14 @@ from .base_np import BaseNP, nll_normal
 def rbf_kernel(x0: Tensor, x1: Tensor, sigma: Tensor) -> Tensor:
     """RBF kernel.
 
-        Args:
-            x0 (torch.Tensor): First input data of size `(b, n, x_dim)`.
-            x1 (torch.Tensor): Second input data of size `(b, m, x_dim)`.
-            sigma (torch.Tensor): Sigma scale parameter of size `(c,)`.
+    Args:
+        x0 (torch.Tensor): First input data of size `(b, n, x_dim)`.
+        x1 (torch.Tensor): Second input data of size `(b, m, x_dim)`.
+        sigma (torch.Tensor): Sigma scale parameter of size `(c,)`.
 
-        Returns:
-            kernel (torch.Tensor): kernel matrix of size `(b, n, m, c)`.
-        """
+    Returns:
+        kernel (torch.Tensor): kernel matrix of size `(b, n, m, c)`.
+    """
 
     # Data size
     batch_size, num_points, x_dim = x0.size()
