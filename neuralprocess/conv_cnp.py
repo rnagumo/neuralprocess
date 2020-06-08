@@ -156,7 +156,7 @@ class Decoder(nn.Module):
             x (torch.Tensor): X target data, size `(b, m, x_dim)`.
 
         Returns:
-            y_out (torch.Tensor): Encoded representation, size `(b, m, y_dim)`.
+            y_out (torch.Tensor): Decoded output, size `(b, m, y_dim)`.
         """
 
         # Data size
@@ -238,7 +238,7 @@ class ConvCNP(BaseNP):
         # Device
         device = x_context.device
 
-        # Determin thg grid (batch, num_points, 1)
+        # Determine thg grid (batch, num_points, 1)
         x_min = min(x_context.min().item(), x_target.min().item(), -2) - 0.1
         x_max = max(x_context.max().item(), x_target.max().item(), 2) + 0.1
         num_points = int(to_multiple(self.points_per_unit * (x_max - x_min),
