@@ -56,15 +56,15 @@ class DAGEmbedding(nn.Module):
         self.scale = nn.Parameter((u_dim * torch.ones(1)).sqrt())
 
     def forward(self, u_c: Tensor, u_t: Tensor) -> Tuple[Tensor]:
-        """
+        """Forward method to return graph G, A.
 
         Args:
             u_c (torch.Tensor): u input for context, size `(b, n, u_dim)`.
             u_t (torch.Tensor): u input for target, size `(b, m, u_dim)`.
 
         Returns:
-            graph (torch.Tensor): Sampled DAG, size `(b, n, n)`.
-            bipartite (torch.Tensor): Bipartite graph, size `(b, m, n)`.
+            graph (torch.Tensor): Sampled DAG `G`, size `(b, n, n)`.
+            bipartite (torch.Tensor): Bipartite graph `A`, size `(b, m, n)`.
         """
 
         graph = self._sample_dag(u_c)
@@ -108,11 +108,11 @@ class DAGEmbedding(nn.Module):
         graph = u_c.new_zeros((b, n, n))
         graph[:, indices[0], indices[1]] = sorted_graph
 
-        # Unsort DAG to data order
+        # Unsort index of DAG to data order
         col_idx = torch.argsort(sort_idx)
         col_idx = col_idx.unsqueeze(1).repeat(1, n, 1)
 
-        # Swap: 1. columns, 2. indices as columns, repsectively
+        # Swap to unsort: 1. columns, 2. indices as columns
         graph = torch.gather(graph, -1, col_idx)
         graph = torch.gather(graph.permute(0, 2, 1), -1, col_idx)
         graph = graph.permute(0, 2, 1)
