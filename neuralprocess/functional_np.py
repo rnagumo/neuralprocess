@@ -186,9 +186,9 @@ class FunctionalNP(BaseNP):
         # g(y): Linear embedding of labels
         self.g_y = nn.Linear(y_dim, z_dim * 2)
 
-        # p(y|z)
+        # p(y|z, u)
         self.p_y = nn.Sequential(
-            nn.Linear(z_dim, h_dim),
+            nn.Linear(z_dim + u_dim, h_dim),
             nn.ReLU(),
             nn.Linear(h_dim, y_dim * 2),
         )
@@ -233,16 +233,17 @@ class FunctionalNP(BaseNP):
         mu_qy_c, logvar_qy_c = torch.chunk(self.g_y(y_context), 2, -1)
 
         # Parameter of p(z): (b, num_t, z_dim)
-        mu_pz_c = bipartite.matmul(mu_qy_c + mu_qz_c)
-        logvar_pz_c = bipartite.matmul(logvar_qy_c + logvar_qz_c)
+        mu_pz_t = bipartite.matmul(mu_qy_c + mu_qz_c)
+        logvar_pz_t = bipartite.matmul(logvar_qy_c + logvar_qz_c)
 
         # Sample z ~ p(z|par(R, y_R))
-        z_c = (
-            mu_pz_c
-            + (F.softplus(0.5 * logvar_pz_c)) * torch.randn_like(logvar_pz_c))
+        z_t = (
+            mu_pz_t
+            + (F.softplus(0.5 * logvar_pz_t)) * torch.randn_like(logvar_pz_t))
 
         # Decode y: p(y|z)
-        mu_py_t, logvar_py_t = torch.chunk(self.p_y(z_c), 2, dim=-1)
+        mu_py_t, logvar_py_t = torch.chunk(
+            self.p_y(torch.cat([z_t, u_t], dim=-1)), 2, dim=-1)
         var_py_t = F.softplus(logvar_py_t)
 
         return mu_py_t, var_py_t
@@ -315,8 +316,10 @@ class FunctionalNP(BaseNP):
                     - nll_normal(z_t, mu_qz_t, F.softplus(logvar_qz_t)))
 
         # Decode y
-        mu_py_c, logvar_py_c = torch.chunk(self.p_y(z_c), 2, dim=-1)
-        mu_py_t, logvar_py_t = torch.chunk(self.p_y(z_t), 2, dim=-1)
+        mu_py_c, logvar_py_c = torch.chunk(
+            self.p_y(torch.cat([z_c, u_c], dim=-1)), 2, dim=-1)
+        mu_py_t, logvar_py_t = torch.chunk(
+            self.p_y(torch.cat([z_t, u_t], dim=-1)), 2, dim=-1)
 
         # NLL loss: -E_{q(z|x)}[log p(y|z)]
         nll_py_c = nll_normal(y_context, mu_py_c, F.softplus(logvar_py_c))
