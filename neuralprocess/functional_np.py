@@ -109,9 +109,13 @@ class DAGEmbedding(nn.Module):
         graph[:, indices[0], indices[1]] = sorted_graph
 
         # Unsort DAG to data order
-        org_idx = torch.argsort(sort_idx)
-        org_idx = org_idx.view(b, n, 1).repeat(1, 1, n)
-        graph = torch.gather(graph, -1, org_idx)
+        col_idx = torch.argsort(sort_idx)
+        col_idx = col_idx.unsqueeze(1).repeat(1, n, 1)
+
+        # Swap: 1. columns, 2. indices as columns, repsectively
+        graph = torch.gather(graph, -1, col_idx)
+        graph = torch.gather(graph.permute(0, 2, 1), -1, col_idx)
+        graph = graph.permute(0, 2, 1)
 
         return graph
 
