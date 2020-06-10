@@ -163,10 +163,11 @@ class FunctionalNP(BaseNP):
         h_dim (int): Dimension size of h (hidden representation).
         u_dim (int): Dimension size of u (encoded inputs).
         z_dim (int): Dimension size of z (stochastic latent).
+        normalize (bool, optional): If `True`, normalize data.
     """
 
     def __init__(self, x_dim: int, y_dim: int, h_dim: int, u_dim: int,
-                 z_dim: int):
+                 z_dim: int, normalize: bool = True):
         super().__init__()
 
         # h = f(x): Input transformation
@@ -194,6 +195,13 @@ class FunctionalNP(BaseNP):
             nn.Linear(h_dim, y_dim * 2),
         )
 
+        # Normalization parameter
+        self._normalize = normalize
+        self._mu_x = torch.zeros(x_dim)
+        self._std_x = torch.ones(x_dim)
+        self._mu_y = torch.zeros(y_dim)
+        self._std_y = torch.ones(y_dim)
+
     def sample(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
                ) -> Tuple[Tensor, Tensor]:
         """Samples queried y target.
@@ -212,6 +220,11 @@ class FunctionalNP(BaseNP):
             var (torch.Tensor): Variance of y, size
                 `(batch_size, num_target, y_dim)`.
         """
+
+        if self._normalize:
+            x_context = (x_context - self._mu_x) / self._std_x
+            x_target = (x_target - self._mu_x) / self._std_x
+            y_context = (y_context - self._mu_y) / self._std_y
 
         # Representation
         h_c = self.f_x(x_context)
@@ -247,6 +260,11 @@ class FunctionalNP(BaseNP):
             self.p_y(torch.cat([z_t, u_t], dim=-1)), 2, dim=-1)
         var_py_t = F.softplus(logvar_py_t)
 
+        # Unnormalize
+        if self._normalize:
+            mu_py_t = mu_py_t * self._std_y + self._mu_y
+            var_py_t = var_py_t * self._std_y + self._mu_y
+
         return mu_py_t, var_py_t
 
     def loss_func(self, x_context: Tensor, y_context: Tensor, x_target: Tensor,
@@ -272,6 +290,19 @@ class FunctionalNP(BaseNP):
         Returns:
             loss_dict (dict of [str, torch.Tensor]): Calculated loss.
         """
+
+        if self._normalize:
+            _x = torch.cat([x_context, x_target], dim=1)
+            _y = torch.cat([y_context, y_target], dim=1)
+            self._mu_x = _x.mean(dim=[0, 1])
+            self._std_x = _x.std(dim=[0, 1]) + 1e-8
+            self._mu_y = _y.mean(dim=[0, 1])
+            self._std_y = _y.std(dim=[0, 1]) + 1e-8
+
+            x_context = (x_context - self._mu_x) / self._std_x
+            x_target = (x_target - self._mu_x) / self._std_x
+            y_context = (y_context - self._mu_y) / self._std_y
+            y_target = (y_target - self._mu_y) / self._std_y
 
         # Representation
         h_c = self.f_x(x_context)
