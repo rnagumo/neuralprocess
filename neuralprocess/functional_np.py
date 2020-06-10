@@ -132,11 +132,11 @@ class DAGEmbedding(nn.Module):
 
         b, n, _ = u_c.size()
         m = u_t.size(1)
-        indices = list(product(range(m), range(n)))
+        indices = torch.tensor(list(product(range(m), range(n))))
 
         # Latent pairs (b, num_pairs, u_dim)
-        pair_0 = u_t[:, indices[0]]
-        pair_1 = u_c[:, indices[1]]
+        pair_0 = u_t[:, indices[:, 0]]
+        pair_1 = u_c[:, indices[:, 1]]
 
         # Compute logits for each pair
         logp = -0.5 * ((pair_0 - pair_1) ** 2).sum(dim=-1) / self.scale
@@ -148,7 +148,7 @@ class DAGEmbedding(nn.Module):
 
         # Embed values
         bipartite = u_c.new_zeros((b, m, n))
-        bipartite[:, indices[0], indices[1]] = p_edges
+        bipartite[:, indices[:, 0], indices[:, 1]] = p_edges
 
         return bipartite
 
