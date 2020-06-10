@@ -291,19 +291,21 @@ class FunctionalNP(BaseNP):
         graph = graph / (graph.sum(dim=-1, keepdim=True) + 1e-8)
         bipartite = bipartite / (bipartite.sum(dim=-1, keepdim=True) + 1e-8)
 
-        # Sample z: q(z|x)
+        # Sample variational posterior z: q(z|x)
         mu_qz_c, logvar_qz_c = torch.chunk(self.q_z(h_c), 2, -1)
-        z_c = (mu_qz_c
-               + F.softplus(0.5 * logvar_qz_c) * torch.randn_like(logvar_qz_c))
+        qz_c = (
+            mu_qz_c
+            + F.softplus(0.5 * logvar_qz_c) * torch.randn_like(logvar_qz_c))
 
         mu_qz_t, logvar_qz_t = torch.chunk(self.q_z(h_t), 2, -1)
-        z_t = (mu_qz_t
-               + F.softplus(0.5 * logvar_qz_t) * torch.randn_like(logvar_qz_t))
+        qz_t = (
+            mu_qz_t
+            + F.softplus(0.5 * logvar_qz_t) * torch.randn_like(logvar_qz_t))
 
         # Embed labels
         mu_qy_c, logvar_qy_c = torch.chunk(self.g_y(y_context), 2, -1)
 
-        # Encode latents from graph: p(z|par(x, y))
+        # Encode prior latents from graph: p(z|par(x, y))
         mu_pz_c = graph.matmul(mu_qy_c + mu_qz_c)
         logvar_pz_c = graph.matmul(logvar_qy_c + logvar_qz_c)
 
@@ -311,16 +313,16 @@ class FunctionalNP(BaseNP):
         logvar_pz_t = bipartite.matmul(logvar_qy_c + logvar_qz_c)
 
         # Calculate KL loss: -E_{q(z|x)}[log p(z|x, y) - log q(z|x)]
-        kl_pqz_c = (nll_normal(z_c, mu_pz_c, F.softplus(logvar_pz_c))
-                    - nll_normal(z_c, mu_qz_c, F.softplus(logvar_qz_c)))
-        kl_pqz_t = (nll_normal(z_t, mu_pz_t, F.softplus(logvar_pz_t))
-                    - nll_normal(z_t, mu_qz_t, F.softplus(logvar_qz_t)))
+        kl_pqz_c = (nll_normal(qz_c, mu_pz_c, F.softplus(logvar_pz_c))
+                    - nll_normal(qz_c, mu_qz_c, F.softplus(logvar_qz_c)))
+        kl_pqz_t = (nll_normal(qz_t, mu_pz_t, F.softplus(logvar_pz_t))
+                    - nll_normal(qz_t, mu_qz_t, F.softplus(logvar_qz_t)))
 
-        # Decode y
+        # Decode y: p(y|z, u)
         mu_py_c, logvar_py_c = torch.chunk(
-            self.p_y(torch.cat([z_c, u_c], dim=-1)), 2, dim=-1)
+            self.p_y(torch.cat([qz_c, u_c], dim=-1)), 2, dim=-1)
         mu_py_t, logvar_py_t = torch.chunk(
-            self.p_y(torch.cat([z_t, u_t], dim=-1)), 2, dim=-1)
+            self.p_y(torch.cat([qz_t, u_t], dim=-1)), 2, dim=-1)
 
         # NLL loss: -E_{q(z|x)}[log p(y|z)]
         nll_py_c = nll_normal(y_context, mu_py_c, F.softplus(logvar_py_c))
