@@ -130,6 +130,7 @@ class DAGEmbedding(nn.Module):
             bipartite (torch.Tensor): Bipartite graph, size `(b, m, n)`.
         """
 
+        # Indices for pairs (u_t_i, u_c_j)
         b, n, _ = u_c.size()
         m = u_t.size(1)
         indices = torch.tensor(list(product(range(m), range(n)))).t()
