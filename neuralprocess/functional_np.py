@@ -52,8 +52,8 @@ class DAGEmbedding(nn.Module):
     def __init__(self, u_dim: int, temperature: float = 0.3):
         super().__init__()
 
+        self.scale = nn.Parameter((torch.ones(1) * u_dim ** 0.5).log())
         self.temperature = temperature
-        self.scale = nn.Parameter((u_dim * torch.ones(1)).sqrt())
 
     def forward(self, u_c: Tensor, u_t: Tensor) -> Tuple[Tensor]:
         """Forward method to return graph G, A.
@@ -97,7 +97,7 @@ class DAGEmbedding(nn.Module):
         pair_1 = u_c_sorted[:, indices[1]]
 
         # Compute logits for each pair
-        logp = -0.5 * (pair_0 - pair_1) ** 2 / self.scale
+        logp = -0.5 * (pair_0 - pair_1) ** 2 / self.scale.exp()
         logits = logitexp(logp)
 
         # Sample graph from bernoulli dist (b, num_pairs)
@@ -132,14 +132,14 @@ class DAGEmbedding(nn.Module):
 
         b, n, _ = u_c.size()
         m = u_t.size(1)
-        indices = torch.tensor(list(product(range(m), range(n))))
+        indices = torch.tensor(list(product(range(m), range(n)))).t()
 
         # Latent pairs (b, num_pairs, u_dim)
-        pair_0 = u_t[:, indices[:, 0]]
-        pair_1 = u_c[:, indices[:, 1]]
+        pair_0 = u_t[:, indices[0]]
+        pair_1 = u_c[:, indices[1]]
 
         # Compute logits for each pair
-        logp = -0.5 * ((pair_0 - pair_1) ** 2).sum(dim=-1) / self.scale
+        logp = -0.5 * ((pair_0 - pair_1) ** 2).sum(dim=-1) / self.scale.exp()
         logits = logitexp(logp)
 
         # Sample graph from bernoulli dist (b, num_pairs)
@@ -148,7 +148,7 @@ class DAGEmbedding(nn.Module):
 
         # Embed values
         bipartite = u_c.new_zeros((b, m, n))
-        bipartite[:, indices[:, 0], indices[:, 1]] = p_edges
+        bipartite[:, indices[0], indices[1]] = p_edges
 
         return bipartite
 
