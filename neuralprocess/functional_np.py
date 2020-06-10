@@ -262,8 +262,8 @@ class FunctionalNP(BaseNP):
 
         # Unnormalize
         if self._normalize:
-            mu_py_t = mu_py_t * self._std_y + self._mu_y
-            var_py_t = var_py_t * self._std_y + self._mu_y
+            mu_py_t = mu_py_t + self._mu_y
+            var_py_t = var_py_t * self._std_y ** 2
 
         return mu_py_t, var_py_t
 
