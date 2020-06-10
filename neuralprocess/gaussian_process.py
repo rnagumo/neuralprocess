@@ -172,7 +172,7 @@ class GaussianProcess(torch.nn.Module):
 
         return y_mean, y_cov
 
-    def sample(self, x: Tensor, y_dim: int = 1, resample_params: bool = True,
+    def sample(self, x: Tensor, y_dim: int = 1, resample_params: bool = False,
                single_params: bool = True, eps: float = 0.1) -> Tensor:
         """Samples function from GP.
 
