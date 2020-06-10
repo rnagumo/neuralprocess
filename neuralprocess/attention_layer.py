@@ -4,6 +4,9 @@
 Original paper:
 Attention is all you need. (https://arxiv.org/abs/1706.03762)
 
+You can also use torch.nn.MultiheadAttention class.
+https://pytorch.org/docs/master/generated/torch.nn.MultiheadAttention.html
+
 ref) Sample code
 
 https://github.com/jadore801120/attention-is-all-you-need-pytorch/blob/master/transformer/SubLayers.py
