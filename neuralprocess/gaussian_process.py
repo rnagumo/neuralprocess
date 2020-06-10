@@ -181,7 +181,7 @@ class GaussianProcess(torch.nn.Module):
                 `(batch_size. num_points, x_dim)`.
             y_dim (int, optional): Output y dim size.
             resample_params (bool, optional): If `True`, resample kernel
-                parameters (default = `True`).
+                parameters (default = `False`).
             single_params (bool, optional): If `True`, resampled kernel
                 parameters are single values (default = `True`).
             eps (float, optional): Lower bounds for sampled parameters.
