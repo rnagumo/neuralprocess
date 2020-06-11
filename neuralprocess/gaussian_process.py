@@ -200,9 +200,9 @@ class GaussianProcess(torch.nn.Module):
             l2_scale = torch.tensor([self._l2_scale])
             variance = torch.tensor([self._variance])
 
-        # Resize: l2 = (b, n1, n2, x_dim), var = (b, n1, n2)
-        self.l2_scale_param = l2_scale.view(-1, 1, 1, 1)
-        self.variance_param = variance.view(-1, 1, 1)
+        # Set parameters
+        self.l2_scale_param = l2_scale
+        self.variance_param = variance
 
         # Sample mean and cov
         mean, cov = self.predict(x, y_dim=y_dim)
