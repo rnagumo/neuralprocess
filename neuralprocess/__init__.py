@@ -11,3 +11,4 @@ from .gaussian_process import GaussianProcess
 from .gp_dataset import GPDataset
 from .neural_process import NeuralProcess
 from .seq_gp_dataset import SequentialGPDataset
+from .sequential_np import SequentialNP
