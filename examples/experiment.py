@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import tqdm
 
 import torch
-from torch import optim
+from torch import optim, Tensor
 import tensorboardX as tb
 
 import neuralprocess as npr
@@ -99,13 +99,27 @@ class Trainer:
 
         self.logger.info("Load dataset")
 
-        self.train_loader = torch.utils.data.DataLoader(
-            npr.GPDataset(train=True, **self.hparams["train_dataset_params"]),
-            shuffle=True, batch_size=16)
+        train_params = self.hparams["train_dataset_params"]
+        test_params = self.hparams["test_dataset_params"]
 
-        self.test_loader = torch.utils.data.DataLoader(
-            npr.GPDataset(train=False, **self.hparams["test_dataset_params"]),
-            shuffle=False, batch_size=1)
+        if self.hparams["model"] == "snp":
+            self.train_loader = torch.utils.data.DataLoader(
+                npr.SequentialGPDataset(
+                    train=True, seq_len=20, **train_params),
+                shuffle=True, batch_size=16)
+
+            self.test_loader = torch.utils.data.DataLoader(
+                npr.SequentialGPDataset(
+                    train=False, seq_len=20, **test_params),
+                shuffle=False, batch_size=1)
+        else:
+            self.train_loader = torch.utils.data.DataLoader(
+                npr.GPDataset(train=True, **train_params),
+                shuffle=True, batch_size=16)
+
+            self.test_loader = torch.utils.data.DataLoader(
+                npr.GPDataset(train=False, **test_params),
+                shuffle=False, batch_size=1)
 
         self.logger.info(f"Train dataset size: {len(self.train_loader)}")
         self.logger.info(f"Test dataset size: {len(self.test_loader)}")
@@ -225,7 +239,24 @@ class Trainer:
         mu = mu.cpu()
         var = var.cpu()
 
-        # Plot
+        if self.hparams["model"] == "snp":
+            self._plot_sequence(x_ctx, y_ctx, x_tgt, y_tgt, mu, var)
+        else:
+            self._plot_single(x_ctx, y_ctx, x_tgt, y_tgt, mu, var)
+
+    def _plot_single(self, x_ctx: Tensor, y_ctx: Tensor, x_tgt: Tensor,
+                     y_tgt: Tensor, mu: Tensor, var: Tensor) -> None:
+        """Plots single figure.
+
+        Args:
+            x_ctx (torch.Tensor): Context x, size `(batch, num_ctx, 1)`.
+            y_ctx (torch.Tensor): Context y, size `(batch, num_ctx, 1)`.
+            x_tgt (torch.Tensor): Target x, size `(batch, num_tgt, 1)`.
+            y_tgt (torch.Tensor): Target y, size `(batch, num_tgt, 1)`.
+            mu (torch.Tensor): Sampled mu, size `(batch, num_tgt, 1)`.
+            var (torch.Tensor): Sampled var, size `(batch, num_tgt, 1)`.
+        """
+
         plt.figure(figsize=(10, 6))
         plt.plot(x_tgt.squeeze(-1)[0], y_tgt.squeeze(-1)[0], "k:",
                  label="True function")
@@ -240,6 +271,44 @@ class Trainer:
         plt.legend(loc="upper right")
         plt.title(f"Training results (epoch={self.epoch})")
         plt.tight_layout()
+        plt.savefig(self.logdir / f"fig_{self.epoch}.png")
+        plt.close()
+
+    def _plot_sequence(self, x_ctx: Tensor, y_ctx: Tensor, x_tgt: Tensor,
+                       y_tgt: Tensor, mu: Tensor, var: Tensor,
+                       skip_step: int = 4) -> None:
+        """Plots single figure.
+
+        Args:
+            x_ctx (torch.Tensor): Context x, size `(b, l, n, 1)`.
+            y_ctx (torch.Tensor): Context y, size `(b, l, n, 1)`.
+            x_tgt (torch.Tensor): Target x, size `(b, l, m, 1)`.
+            y_tgt (torch.Tensor): Target y, size `(b, l, m, 1)`.
+            mu (torch.Tensor): Sampled mu, size `(b, l, m, 1)`.
+            var (torch.Tensor): Sampled var, size `(b, l, m, 1)`.
+            skip_step (int, optional): Skip length to plot.
+        """
+
+        seq_len = x_ctx.size(1)
+        total = seq_len // skip_step
+
+        plt.figure(figsize=(10, 24))
+        for i, t in enumerate(range(0, seq_len, skip_step)):
+            plt.subplot(total, 1, i + 1)
+            plt.plot(x_tgt.squeeze(-1)[0, t], y_tgt.squeeze(-1)[0, t], "k:",
+                     label="True function")
+            plt.plot(x_ctx.squeeze(-1)[0, t], y_ctx.squeeze(-1)[0, t], "ko",
+                     label="Context data")
+            plt.plot(x_tgt.squeeze(-1)[0, t], mu.squeeze(-1)[0, t], "b",
+                     label="Sampled function")
+            plt.fill_between(x_tgt.squeeze(-1)[0, t],
+                             (mu + var ** 0.5).squeeze(-1)[0, t],
+                             (mu - var ** 0.5).squeeze(-1)[0, t],
+                             color="b", alpha=0.2, label="1-sigma range")
+            plt.legend(loc="upper right")
+            plt.title(f"Time step {t}")
+            plt.tight_layout()
+
         plt.savefig(self.logdir / f"fig_{self.epoch}.png")
         plt.close()
 
