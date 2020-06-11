@@ -4,7 +4,7 @@
 Mainly used for data generation and model comparison.
 """
 
-from typing import Tuple
+from typing import Tuple, Union
 
 import torch
 from torch import Tensor
@@ -219,22 +219,34 @@ class GaussianProcess(torch.nn.Module):
         return y
 
     @property
-    def l2_scale(self):
+    def l2_scale(self) -> Tensor:
         return self.l2_scale_param
 
     @l2_scale.setter
-    def l2_scale(self, l2_scale):
+    def l2_scale(self, l2_scale: Union[Tensor, float]) -> None:
+        """Sets l2_scale.
+
+        Args:
+            l2_scale (torch.Tensor or float): L2 scale param.
+        """
+
         if isinstance(l2_scale, torch.Tensor):
             self.l2_scale_param = l2_scale
         else:
             self.l2_scale_param = torch.tensor([l2_scale])
 
     @property
-    def variance(self):
+    def variance(self) -> Tensor:
         return self.variance_param
 
     @variance.setter
-    def variance(self, variance):
+    def variance(self, variance: Union[Tensor, float]) -> None:
+        """Sets variance.
+
+        Args:
+            variance (torch.Tensor or float): L2 scale param.
+        """
+
         if isinstance(variance, torch.Tensor):
             self.variance_param = variance
         else:
