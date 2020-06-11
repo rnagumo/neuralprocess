@@ -157,6 +157,9 @@ class TestGaussianProcess(unittest.TestCase):
         self.assertEqual(self.model.l2_scale, 0.5)
         self.assertEqual(self.model.l2_scale_param, 0.5)
 
+        self.model.l2_scale = torch.randn(10)
+        self.assertTupleEqual(self.model.l2_scale.size(), (10,))
+
     def test_variance(self):
         # Getter
         self.assertEqual(self.model.variance, 1.0)
@@ -165,6 +168,9 @@ class TestGaussianProcess(unittest.TestCase):
         self.model.variance = 0.5
         self.assertEqual(self.model.variance, 0.5)
         self.assertEqual(self.model.variance_param, 0.5)
+
+        self.model.variance = torch.randn(10)
+        self.assertTupleEqual(self.model.variance.size(), (10,))
 
 
 if __name__ == "__main__":

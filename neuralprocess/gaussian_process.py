@@ -224,7 +224,10 @@ class GaussianProcess(torch.nn.Module):
 
     @l2_scale.setter
     def l2_scale(self, l2_scale):
-        self.l2_scale_param = torch.tensor([l2_scale])
+        if isinstance(l2_scale, torch.Tensor):
+            self.l2_scale_param = l2_scale
+        else:
+            self.l2_scale_param = torch.tensor([l2_scale])
 
     @property
     def variance(self):
@@ -232,4 +235,7 @@ class GaussianProcess(torch.nn.Module):
 
     @variance.setter
     def variance(self, variance):
-        self.variance_param = torch.tensor([variance])
+        if isinstance(variance, torch.Tensor):
+            self.variance_param = variance
+        else:
+            self.variance_param = torch.tensor([variance])
