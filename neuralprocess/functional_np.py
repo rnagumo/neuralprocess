@@ -197,7 +197,7 @@ class FunctionalNP(BaseNP):
 
         # Free bit noize for latent z
         self.fb_z = fb_z
-        self.lambda_z = torch.ones(1) * 1e-8
+        self.lambda_z = torch.tensor(1e-8)
 
         # Normalization parameter
         self._normalize = normalize
