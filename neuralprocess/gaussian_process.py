@@ -217,3 +217,19 @@ class GaussianProcess(torch.nn.Module):
         y = chol.matmul(torch.randn(batch_size, num_points, y_dim)) + mean
 
         return y
+
+    @property
+    def l2_scale(self):
+        return self.l2_scale_param
+
+    @l2_scale.setter
+    def l2_scale(self, l2_scale):
+        self.l2_scale_param = torch.tensor(l2_scale)
+
+    @property
+    def variance(self):
+        return self.variance_param
+
+    @variance.setter
+    def variance(self, variance):
+        self.variance_param = torch.tensor(variance)
