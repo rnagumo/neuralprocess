@@ -167,7 +167,7 @@ class FunctionalNP(BaseNP):
     """
 
     def __init__(self, x_dim: int, y_dim: int, h_dim: int, u_dim: int,
-                 z_dim: int, normalize: bool = True):
+                 z_dim: int, fb_z: float = 1.0, normalize: bool = True):
         super().__init__()
 
         # h = f(x): Input transformation
@@ -194,6 +194,10 @@ class FunctionalNP(BaseNP):
             nn.ReLU(),
             nn.Linear(h_dim, y_dim * 2),
         )
+
+        # Free bit noize for latent z
+        self.fb_z = fb_z
+        self.lambda_z = torch.ones(1) * 1e-8
 
         # Normalization parameter
         self._normalize = normalize
@@ -349,11 +353,29 @@ class FunctionalNP(BaseNP):
         kl_pqz_t = (nll_normal(qz_t, mu_pz_t, F.softplus(logvar_pz_t))
                     - nll_normal(qz_t, mu_qz_t, F.softplus(logvar_qz_t)))
 
+        # Apply free bits for latent
+        if self.fb_z > 0:
+            kl_pqz = torch.cat([kl_pqz_c, kl_pqz_t], dim=1).sum()
+            if self.training:
+                batch, num_c, dim = qz_c.size()
+                num_t = qz_t.size(1)
+                th = self.fb_z * batch * (num_c + num_t) * dim
+                if kl_pqz > th * 1.05:
+                    self.lambda_z = (self.lambda_z * 1.1).clamp(1e-8, 1)
+                elif kl_pqz < th:
+                    self.lambda_z = (self.lambda_z * 0.9).clamp(1e-8, 1)
+
+            kl_pqz_c = kl_pqz_c * self.lambda_z
+            kl_pqz_t = kl_pqz_t * self.lambda_z
+
         # Decode y: p(y|z, u)
         mu_py_c, logvar_py_c = torch.chunk(
             self.p_y(torch.cat([qz_c, u_c], dim=-1)), 2, dim=-1)
         mu_py_t, logvar_py_t = torch.chunk(
             self.p_y(torch.cat([qz_t, u_t], dim=-1)), 2, dim=-1)
+
+        logvar_py_c = torch.log(0.1 + 0.9 * F.softplus(logvar_py_c))
+        logvar_py_t = torch.log(0.1 + 0.9 * F.softplus(logvar_py_t))
 
         # NLL loss: -E_{q(z|x)}[log p(y|z)]
         nll_py_c = nll_normal(y_context, mu_py_c, F.softplus(logvar_py_c))
