@@ -54,7 +54,7 @@
     "convcnp_params": {
         "x_dim": 1,
         "y_dim": 1,
-        "z_dim": 8,
+        "h_dim": 8,
         "points_per_unit": 64
     },
     "fnp_params": {
