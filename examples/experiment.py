@@ -326,6 +326,9 @@ class Trainer:
 
         self.logger.info("Start experiment")
 
+        # Save config of this experiment
+        self.save_configs()
+
         # Data
         self.load_dataloader()
 
@@ -364,7 +367,6 @@ class Trainer:
             pbar.set_postfix(postfix)
 
         # Post process
-        self.save_configs()
         self.quit()
 
     def run(self) -> None:
