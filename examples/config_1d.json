@@ -50,5 +50,25 @@
         "s_dim": 128,
         "z_dim": 128,
         "n_head": 8
+    },
+    "convcnp_params": {
+        "x_dim": 1,
+        "y_dim": 1,
+        "h_dim": 8,
+        "points_per_unit": 64
+    },
+    "fnp_params": {
+        "x_dim": 1,
+        "y_dim": 1,
+        "h_dim": 100,
+        "u_dim": 3,
+        "z_dim": 50
+    },
+    "snp_params": {
+        "x_dim": 1,
+        "y_dim": 1,
+        "r_dim": 128,
+        "z_dim": 128,
+        "h_dim": 128
     }
 }

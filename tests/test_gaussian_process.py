@@ -148,6 +148,30 @@ class TestGaussianProcess(unittest.TestCase):
         y_sample = self.model.sample(x, y_dim, resample_params=False)
         self.assertTupleEqual(y_sample.size(), (batch_size, num_points, y_dim))
 
+    def test_l2_scale(self):
+        # Getter
+        self.assertEqual(self.model.l2_scale, 0.4)
+
+        # Setter
+        self.model.l2_scale = 0.5
+        self.assertEqual(self.model.l2_scale, 0.5)
+        self.assertEqual(self.model.l2_scale_param, 0.5)
+
+        self.model.l2_scale = torch.randn(10)
+        self.assertTupleEqual(self.model.l2_scale.size(), (10,))
+
+    def test_variance(self):
+        # Getter
+        self.assertEqual(self.model.variance, 1.0)
+
+        # Setter
+        self.model.variance = 0.5
+        self.assertEqual(self.model.variance, 0.5)
+        self.assertEqual(self.model.variance_param, 0.5)
+
+        self.model.variance = torch.randn(10)
+        self.assertTupleEqual(self.model.variance.size(), (10,))
+
 
 if __name__ == "__main__":
     unittest.main()

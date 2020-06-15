@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import tqdm
 
 import torch
-from torch import optim
+from torch import optim, Tensor
 import tensorboardX as tb
 
 import neuralprocess as npr
@@ -29,7 +29,7 @@ class Trainer:
     def __init__(self, model: npr.BaseNP, hparams: dict):
         # Params
         self.model = model
-        self.hparams = hparams
+        self.hparams = copy.deepcopy(hparams)
 
         # Attributes
         self.logdir = None
@@ -41,6 +41,12 @@ class Trainer:
         self.device = None
         self.epoch = 0
 
+        # Hyper-params
+        self.model_name = ""
+        self.gpus = None
+        self.log_interval = 10
+        self.max_epochs = 10
+
     def check_logdir(self) -> None:
         """Checks log directory.
 
@@ -48,12 +54,8 @@ class Trainer:
         exist.
         """
 
-        if "logdir" in self.hparams:
-            logdir = pathlib.Path(self.hparams["logdir"])
-        else:
-            logdir = pathlib.Path("./logs/tmp/")
-
-        self.logdir = logdir / time.strftime("%Y%m%d%H%M")
+        logdir = self.hparams.get("logdir", "./logs/tmp/")
+        self.logdir = pathlib.Path(logdir, time.strftime("%Y%m%d%H%M"))
         self.logdir.mkdir(parents=True, exist_ok=True)
 
     def init_logger(self, save_file: bool = True) -> None:
@@ -99,13 +101,27 @@ class Trainer:
 
         self.logger.info("Load dataset")
 
-        self.train_loader = torch.utils.data.DataLoader(
-            npr.GPDataset(train=True, **self.hparams["train_dataset_params"]),
-            shuffle=True, batch_size=16)
+        train_params = self.hparams.get("train_dataset_params", {})
+        test_params = self.hparams.get("test_dataset_params", {})
 
-        self.test_loader = torch.utils.data.DataLoader(
-            npr.GPDataset(train=False, **self.hparams["test_dataset_params"]),
-            shuffle=False, batch_size=1)
+        if self.model_name == "snp":
+            self.train_loader = torch.utils.data.DataLoader(
+                npr.SequentialGPDataset(
+                    train=True, seq_len=20, **train_params),
+                shuffle=True, batch_size=16)
+
+            self.test_loader = torch.utils.data.DataLoader(
+                npr.SequentialGPDataset(
+                    train=False, seq_len=20, **test_params),
+                shuffle=False, batch_size=1)
+        else:
+            self.train_loader = torch.utils.data.DataLoader(
+                npr.GPDataset(train=True, **train_params),
+                shuffle=True, batch_size=16)
+
+            self.test_loader = torch.utils.data.DataLoader(
+                npr.GPDataset(train=False, **test_params),
+                shuffle=False, batch_size=1)
 
         self.logger.info(f"Train dataset size: {len(self.train_loader)}")
         self.logger.info(f"Test dataset size: {len(self.test_loader)}")
@@ -121,7 +137,7 @@ class Trainer:
         loss_dict = collections.defaultdict(float)
 
         # Resample dataset with/without kernel hyper-parameter update
-        resample_params = self.hparams["model"] in ("dnp", "anp")
+        resample_params = self.model_name in ("dnp", "anp")
         self.train_loader.dataset.generate_dataset(
             resample_params=resample_params, single_params=False)
 
@@ -225,7 +241,24 @@ class Trainer:
         mu = mu.cpu()
         var = var.cpu()
 
-        # Plot
+        if self.model_name == "snp":
+            self._plot_sequence(x_ctx, y_ctx, x_tgt, y_tgt, mu, var)
+        else:
+            self._plot_single(x_ctx, y_ctx, x_tgt, y_tgt, mu, var)
+
+    def _plot_single(self, x_ctx: Tensor, y_ctx: Tensor, x_tgt: Tensor,
+                     y_tgt: Tensor, mu: Tensor, var: Tensor) -> None:
+        """Plots single figure.
+
+        Args:
+            x_ctx (torch.Tensor): Context x, size `(batch, num_ctx, 1)`.
+            y_ctx (torch.Tensor): Context y, size `(batch, num_ctx, 1)`.
+            x_tgt (torch.Tensor): Target x, size `(batch, num_tgt, 1)`.
+            y_tgt (torch.Tensor): Target y, size `(batch, num_tgt, 1)`.
+            mu (torch.Tensor): Sampled mu, size `(batch, num_tgt, 1)`.
+            var (torch.Tensor): Sampled var, size `(batch, num_tgt, 1)`.
+        """
+
         plt.figure(figsize=(10, 6))
         plt.plot(x_tgt.squeeze(-1)[0], y_tgt.squeeze(-1)[0], "k:",
                  label="True function")
@@ -243,6 +276,44 @@ class Trainer:
         plt.savefig(self.logdir / f"fig_{self.epoch}.png")
         plt.close()
 
+    def _plot_sequence(self, x_ctx: Tensor, y_ctx: Tensor, x_tgt: Tensor,
+                       y_tgt: Tensor, mu: Tensor, var: Tensor,
+                       skip_step: int = 4) -> None:
+        """Plots single figure.
+
+        Args:
+            x_ctx (torch.Tensor): Context x, size `(b, l, n, 1)`.
+            y_ctx (torch.Tensor): Context y, size `(b, l, n, 1)`.
+            x_tgt (torch.Tensor): Target x, size `(b, l, m, 1)`.
+            y_tgt (torch.Tensor): Target y, size `(b, l, m, 1)`.
+            mu (torch.Tensor): Sampled mu, size `(b, l, m, 1)`.
+            var (torch.Tensor): Sampled var, size `(b, l, m, 1)`.
+            skip_step (int, optional): Skip length to plot.
+        """
+
+        seq_len = x_ctx.size(1)
+        total = seq_len // skip_step
+
+        plt.figure(figsize=(10, 24))
+        for i, t in enumerate(range(0, seq_len, skip_step)):
+            plt.subplot(total, 1, i + 1)
+            plt.plot(x_tgt.squeeze(-1)[0, t], y_tgt.squeeze(-1)[0, t], "k:",
+                     label="True function")
+            plt.plot(x_ctx.squeeze(-1)[0, t], y_ctx.squeeze(-1)[0, t], "ko",
+                     label="Context data")
+            plt.plot(x_tgt.squeeze(-1)[0, t], mu.squeeze(-1)[0, t], "b",
+                     label="Sampled function")
+            plt.fill_between(x_tgt.squeeze(-1)[0, t],
+                             (mu + var ** 0.5).squeeze(-1)[0, t],
+                             (mu - var ** 0.5).squeeze(-1)[0, t],
+                             color="b", alpha=0.2, label="1-sigma range")
+            plt.legend(loc="upper right")
+            plt.title(f"Time step {t}")
+            plt.tight_layout()
+
+        plt.savefig(self.logdir / f"fig_{self.epoch}.png")
+        plt.close()
+
     def quit(self) -> None:
         """Post process."""
 
@@ -257,14 +328,23 @@ class Trainer:
 
         self.logger.info("Start experiment")
 
+        # Get params
+        self.model_name = self.hparams.get("model", "cnp")
+        self.gpus = self.hparams.get("gpus", None)
+        self.log_interval = self.hparams.get("log_save_interval", 10)
+        self.max_epochs = self.hparams.get("epochs", 10)
+
+        # Save config of this experiment
+        self.save_configs()
+
         # Data
         self.load_dataloader()
 
         # Model to device
-        if self.hparams["gpus"] is None:
+        if self.gpus is None:
             self.device = torch.device("cpu")
         else:
-            self.device = torch.device(f"cuda:{self.hparams['gpus']}")
+            self.device = torch.device(f"cuda:{self.gpus}")
         self.model = self.model.to(self.device)
 
         # Optimizer
@@ -273,7 +353,7 @@ class Trainer:
         # Run training
         self.logger.info("Start training")
 
-        pbar = tqdm.trange(1, self.hparams["epochs"] + 1)
+        pbar = tqdm.trange(1, self.max_epochs + 1)
         postfix = {"train/loss": 0, "test/loss": 0}
         self.epoch = 0
 
@@ -284,7 +364,7 @@ class Trainer:
             train_loss = self.train()
             postfix["train/loss"] = train_loss
 
-            if self.epoch % self.hparams["log_save_interval"] == 0:
+            if self.epoch % self.log_interval == 0:
                 # Calculate test loss
                 test_loss = self.test()
                 postfix["test/loss"] = test_loss
@@ -295,7 +375,6 @@ class Trainer:
             pbar.set_postfix(postfix)
 
         # Post process
-        self.save_configs()
         self.quit()
 
     def run(self) -> None:

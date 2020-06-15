@@ -4,7 +4,7 @@
 Mainly used for data generation and model comparison.
 """
 
-from typing import Tuple
+from typing import Tuple, Union
 
 import torch
 from torch import Tensor
@@ -172,7 +172,7 @@ class GaussianProcess(torch.nn.Module):
 
         return y_mean, y_cov
 
-    def sample(self, x: Tensor, y_dim: int = 1, resample_params: bool = True,
+    def sample(self, x: Tensor, y_dim: int = 1, resample_params: bool = False,
                single_params: bool = True, eps: float = 0.1) -> Tensor:
         """Samples function from GP.
 
@@ -181,7 +181,7 @@ class GaussianProcess(torch.nn.Module):
                 `(batch_size. num_points, x_dim)`.
             y_dim (int, optional): Output y dim size.
             resample_params (bool, optional): If `True`, resample kernel
-                parameters (default = `True`).
+                parameters (default = `False`).
             single_params (bool, optional): If `True`, resampled kernel
                 parameters are single values (default = `True`).
             eps (float, optional): Lower bounds for sampled parameters.
@@ -200,9 +200,9 @@ class GaussianProcess(torch.nn.Module):
             l2_scale = torch.tensor([self._l2_scale])
             variance = torch.tensor([self._variance])
 
-        # Resize: l2 = (b, n1, n2, x_dim), var = (b, n1, n2)
-        self.l2_scale_param = l2_scale.view(-1, 1, 1, 1)
-        self.variance_param = variance.view(-1, 1, 1)
+        # Set parameters
+        self.l2_scale_param = l2_scale
+        self.variance_param = variance
 
         # Sample mean and cov
         mean, cov = self.predict(x, y_dim=y_dim)
@@ -217,3 +217,37 @@ class GaussianProcess(torch.nn.Module):
         y = chol.matmul(torch.randn(batch_size, num_points, y_dim)) + mean
 
         return y
+
+    @property
+    def l2_scale(self) -> Tensor:
+        return self.l2_scale_param
+
+    @l2_scale.setter
+    def l2_scale(self, l2_scale: Union[Tensor, float]) -> None:
+        """Sets l2_scale.
+
+        Args:
+            l2_scale (torch.Tensor or float): L2 scale param.
+        """
+
+        if isinstance(l2_scale, torch.Tensor):
+            self.l2_scale_param = l2_scale
+        else:
+            self.l2_scale_param = torch.tensor([l2_scale])
+
+    @property
+    def variance(self) -> Tensor:
+        return self.variance_param
+
+    @variance.setter
+    def variance(self, variance: Union[Tensor, float]) -> None:
+        """Sets variance.
+
+        Args:
+            variance (torch.Tensor or float): L2 scale param.
+        """
+
+        if isinstance(variance, torch.Tensor):
+            self.variance_param = variance
+        else:
+            self.variance_param = torch.tensor([variance])
