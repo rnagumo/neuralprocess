@@ -71,10 +71,10 @@ class Encoder(nn.Module):
     Args:
         y_dim (int): Dimension size of y.
         h_dim (int): Dimension size of h (representation).
-        length_scale (int): Initial length scale of RBF kernel.
+        length_scale (float): Initial length scale of RBF kernel.
     """
 
-    def __init__(self, y_dim: int, h_dim: int, length_scale: int):
+    def __init__(self, y_dim: int, h_dim: int, length_scale: float):
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -132,10 +132,10 @@ class Decoder(nn.Module):
     Args:
         h_dim (int): Dimension size of representation h.
         y_dim (int): Dimension size of output y.
-        length_scale (int): Initial length scale of RBF kernel.
+        length_scale (float): Initial length scale of RBF kernel.
     """
 
-    def __init__(self, h_dim: int, y_dim: int, length_scale: int):
+    def __init__(self, h_dim: int, y_dim: int, length_scale: float):
         super().__init__()
 
         self.fc = nn.Sequential(
