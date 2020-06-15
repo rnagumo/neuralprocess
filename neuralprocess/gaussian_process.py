@@ -30,8 +30,8 @@ class GaussianProcess(torch.nn.Module):
         self.variance_param = torch.tensor([variance])
 
         # Saved training data
-        self._x_train = None
-        self._y_train = None
+        self._x_train = torch.tensor([])
+        self._y_train = torch.tensor([])
 
         # Check parameters
         if l2_scale <= 0:
