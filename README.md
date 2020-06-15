@@ -111,20 +111,21 @@ print(y_t.size(), y_mu.size(), y_var.size())
 |Neural Process|![np](./images/np.png)|
 |Neural Process (double latent path)|![dnp](./images/dnp.png)|
 |Attentive Neural Process|![anp](./images/anp.png)|
+|Convolutional Conditional Neural Process|![cnp](./images/convcnp.png)|
+|Sequential Neural Process|![snp](./images/snp.png)|
 
-# Reference
+# References
 
 Original paper
 
 * M. Garnelo *et al*., "Neural Processes" ([arXiv](http://arxiv.org/abs/1807.01622))
 * M. Garnelo *et al*., "Conditional Neural Processes" ([arXiv](http://arxiv.org/abs/1807.01613))
 * H, Kim *et al*., "Attentive Neural Processes" ([arXiv](http://arxiv.org/abs/1901.05761))
+* J. Gordon *et al*., "Convolutional Conditional Neural Processes" ([arXiv](http://arxiv.org/abs/1910.13556))
+* G. Singh *et al*., "Sequential Neural Processes" ([arXiv](http://arxiv.org/abs/1906.10264))
 
 Sample code
 
 * DeepMind "The Neural Process Family" ([GitHub](https://github.com/deepmind/neural-processes))
-
-Others
-
-* J. Gordon *et al*., "Convolutional Conditional Neural Processes" ([arXiv](http://arxiv.org/abs/1910.13556))
 * cambridge-mlg "Convolutional Conditional Neural Processes" ([GitHub](https://github.com/cambridge-mlg/convcnp))
+* singhgautam "Sequential Neural Processes" ([GitHub](https://github.com/singhgautam/snp))
