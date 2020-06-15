@@ -7,11 +7,12 @@ import random
 
 import torch
 from torch import Tensor
+from torch.utils.data import Dataset
 
 from .gaussian_process import GaussianProcess
 
 
-class SequentialGPDataset(torch.utils.data.Dataset):
+class SequentialGPDataset(Dataset):
     """Sequential dataset class with Gaussian Process.
 
     Args:
@@ -53,10 +54,10 @@ class SequentialGPDataset(torch.utils.data.Dataset):
 
         # Attributes
         self.gp = GaussianProcess(**gp_params)
-        self.x_context = None
-        self.y_context = None
-        self.x_target = None
-        self.y_target = None
+        self.x_context = torch.tensor([])
+        self.y_context = torch.tensor([])
+        self.x_target = torch.tensor([])
+        self.y_target = torch.tensor([])
 
         # Initialize dataset
         self.generate_dataset()
@@ -141,7 +142,8 @@ class SequentialGPDataset(torch.utils.data.Dataset):
         self.y_target = torch.stack(y_target).permute(1, 0, 2, 3)
 
     def _generate_single_step(self, num_context: int, num_target: int,
-                              x_ub: float, x_lb: float) -> Tuple[Tensor]:
+                              x_ub: float, x_lb: float
+                              ) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
         """Generates single time step data.
 
         Args:
@@ -187,7 +189,7 @@ class SequentialGPDataset(torch.utils.data.Dataset):
 
         return _x_context, _y_context, x, y
 
-    def __getitem__(self, index: int) -> Tuple[Tensor]:
+    def __getitem__(self, index: int) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
         """Gets item with specified index.
 
         Args:
