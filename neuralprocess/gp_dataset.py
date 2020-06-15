@@ -7,11 +7,12 @@ import random
 
 import torch
 from torch import Tensor
+from torch.utils.data import Dataset
 
 from .gaussian_process import GaussianProcess
 
 
-class GPDataset(torch.utils.data.Dataset):
+class GPDataset(Dataset):
     """Gaussian Process dataset class.
 
     Args:
@@ -51,10 +52,10 @@ class GPDataset(torch.utils.data.Dataset):
 
         # Attributes
         self.gp = GaussianProcess(**gp_params)
-        self.x_context = None
-        self.y_context = None
-        self.x_target = None
-        self.y_target = None
+        self.x_context = torch.tensor([])
+        self.y_context = torch.tensor([])
+        self.x_target = torch.tensor([])
+        self.y_target = torch.tensor([])
 
         # Initialize dataset
         self.generate_dataset()
