@@ -29,7 +29,7 @@ class Trainer:
     def __init__(self, model: npr.BaseNP, hparams: dict):
         # Params
         self.model = model
-        self.hparams = hparams
+        self.hparams = copy.deepcopy(hparams)
 
         # Attributes
         self.logdir = None
@@ -41,6 +41,12 @@ class Trainer:
         self.device = None
         self.epoch = 0
 
+        # Hyper-params
+        self.model_name = ""
+        self.gpus = None
+        self.log_interval = 10
+        self.max_epochs = 10
+
     def check_logdir(self) -> None:
         """Checks log directory.
 
@@ -48,12 +54,8 @@ class Trainer:
         exist.
         """
 
-        if "logdir" in self.hparams:
-            logdir = pathlib.Path(self.hparams["logdir"])
-        else:
-            logdir = pathlib.Path("./logs/tmp/")
-
-        self.logdir = logdir / time.strftime("%Y%m%d%H%M")
+        logdir = self.hparams.get("logdir", "./logs/tmp/")
+        self.logdir = pathlib.Path(logdir, time.strftime("%Y%m%d%H%M"))
         self.logdir.mkdir(parents=True, exist_ok=True)
 
     def init_logger(self, save_file: bool = True) -> None:
@@ -99,10 +101,10 @@ class Trainer:
 
         self.logger.info("Load dataset")
 
-        train_params = self.hparams["train_dataset_params"]
-        test_params = self.hparams["test_dataset_params"]
+        train_params = self.hparams.get("train_dataset_params", {})
+        test_params = self.hparams.get("test_dataset_params", {})
 
-        if self.hparams["model"] == "snp":
+        if self.model_name == "snp":
             self.train_loader = torch.utils.data.DataLoader(
                 npr.SequentialGPDataset(
                     train=True, seq_len=20, **train_params),
@@ -135,7 +137,7 @@ class Trainer:
         loss_dict = collections.defaultdict(float)
 
         # Resample dataset with/without kernel hyper-parameter update
-        resample_params = self.hparams["model"] in ("dnp", "anp")
+        resample_params = self.model_name in ("dnp", "anp")
         self.train_loader.dataset.generate_dataset(
             resample_params=resample_params, single_params=False)
 
@@ -239,7 +241,7 @@ class Trainer:
         mu = mu.cpu()
         var = var.cpu()
 
-        if self.hparams["model"] == "snp":
+        if self.model_name == "snp":
             self._plot_sequence(x_ctx, y_ctx, x_tgt, y_tgt, mu, var)
         else:
             self._plot_single(x_ctx, y_ctx, x_tgt, y_tgt, mu, var)
@@ -326,6 +328,12 @@ class Trainer:
 
         self.logger.info("Start experiment")
 
+        # Get params
+        self.model_name = self.hparams.get("model", "cnp")
+        self.gpus = self.hparams.get("gpus", None)
+        self.log_interval = self.hparams.get("log_save_interval", 10)
+        self.max_epochs = self.hparams.get("epochs", 10)
+
         # Save config of this experiment
         self.save_configs()
 
@@ -333,10 +341,10 @@ class Trainer:
         self.load_dataloader()
 
         # Model to device
-        if self.hparams["gpus"] is None:
+        if self.gpus is None:
             self.device = torch.device("cpu")
         else:
-            self.device = torch.device(f"cuda:{self.hparams['gpus']}")
+            self.device = torch.device(f"cuda:{self.gpus}")
         self.model = self.model.to(self.device)
 
         # Optimizer
@@ -345,7 +353,7 @@ class Trainer:
         # Run training
         self.logger.info("Start training")
 
-        pbar = tqdm.trange(1, self.hparams["epochs"] + 1)
+        pbar = tqdm.trange(1, self.max_epochs + 1)
         postfix = {"train/loss": 0, "test/loss": 0}
         self.epoch = 0
 
@@ -356,7 +364,7 @@ class Trainer:
             train_loss = self.train()
             postfix["train/loss"] = train_loss
 
-            if self.epoch % self.hparams["log_save_interval"] == 0:
+            if self.epoch % self.log_interval == 0:
                 # Calculate test loss
                 test_loss = self.test()
                 postfix["test/loss"] = test_loss
