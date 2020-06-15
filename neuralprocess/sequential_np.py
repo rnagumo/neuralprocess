@@ -5,7 +5,7 @@ G. Singh et al., "Sequential Neural Processes".
 http://arxiv.org/abs/1906.10264
 """
 
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Optional
 
 import torch
 from torch import Tensor, nn
@@ -191,8 +191,8 @@ class SequentialNP(BaseNP):
         self.decoder = Decoder(x_dim, y_dim, h_dim, z_dim)
         self.rnn_cell = nn.RNNCell(r_dim + z_dim, h_dim)
 
-    def sample(self, x_context: Tensor, y_context: Tensor, x_target: Tensor
-               ) -> Tuple[Tensor, Tensor]:
+    def sample(self, x_context: Tensor, y_context: Tensor, x_target: Tensor,
+               y_target: Optional[Tensor] = None) -> Tuple[Tensor, Tensor]:
         """Samples queried y target.
 
         Args:
@@ -202,6 +202,8 @@ class SequentialNP(BaseNP):
                 `(batch_size, seq_len, num_context, y_dim)`.
             x_target (torch.Tensor): x for target, size
                 `(batch_size, seq_len, num_target, x_dim)`.
+            y_target (torch.Tensor, optional): y for target, size
+                `(batch_size, recon_len, num_target, y_dim)`.
 
         Returns:
             mu (torch.Tensor): Mean of y, size
@@ -212,14 +214,22 @@ class SequentialNP(BaseNP):
 
         # Initial parameters
         batch, seq_len, num_target, _ = x_target.size()
+        recon_len = y_target.size(1) if y_target is not None else 0
+
         h_t = x_target.new_zeros((batch, self.h_dim))
         z_t = x_target.new_zeros((batch, self.z_dim))
 
+        # Sample
+        # t < recon_len: Reconstruct observations
+        # t >= recon_len: Sample from prior
         y_mu = []
         y_var = []
         for t in range(seq_len):
             # 1. Encode context: r = f(x, y)
-            r_t = self.encoder_r(x_context[:, t], y_context[:, t])
+            if t < recon_len:
+                r_t = self.encoder_r(x_target[:, t], y_target[:, t])
+            else:
+                r_t = self.encoder_r(x_context[:, t], y_context[:, t])
 
             # 2. Update rnn: h_t = rnn(z, r, h_{t-1})
             h_t = self.rnn_cell(torch.cat([z_t, r_t], dim=-1), h_t)

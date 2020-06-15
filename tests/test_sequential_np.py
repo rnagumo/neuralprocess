@@ -35,6 +35,25 @@ class TestSequentialNP(unittest.TestCase):
         self.assertTupleEqual(
             var.size(), (batch_size, seq_len, num_target, self.y_dim))
 
+    def test_sample_reoncstruct(self):
+        # Data
+        batch_size = 12
+        seq_len = 10
+        num_context = 6
+        num_target = 10
+        x_context = torch.randn(batch_size, seq_len, num_context, self.x_dim)
+        y_context = torch.randn(batch_size, seq_len, num_context, self.y_dim)
+        x_target = torch.randn(batch_size, seq_len, num_target, self.x_dim)
+        y_target = torch.randn(batch_size, seq_len - 5, num_target, self.y_dim)
+
+        # Forward
+        mu, var = self.model.sample(x_context, y_context, x_target, y_target)
+
+        self.assertTupleEqual(
+            mu.size(), (batch_size, seq_len, num_target, self.y_dim))
+        self.assertTupleEqual(
+            var.size(), (batch_size, seq_len, num_target, self.y_dim))
+
     def test_loss_func(self):
         # Data
         batch_size = 12
