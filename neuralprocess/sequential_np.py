@@ -222,11 +222,11 @@ class SequentialNP(BaseNP):
         # Sample
         # t < recon_len: Reconstruct observations
         # t >= recon_len: Sample from prior
-        y_mu = []
-        y_var = []
+        y_mu_list = []
+        y_var_list = []
         for t in range(seq_len):
             # 1. Encode context: r = f(x, y)
-            if t < recon_len:
+            if y_target is not None and t < recon_len:
                 r_t = self.encoder_r(x_target[:, t], y_target[:, t])
             else:
                 r_t = self.encoder_r(x_context[:, t], y_context[:, t])
@@ -241,12 +241,12 @@ class SequentialNP(BaseNP):
             # 4. Render target y: y = renderer(x, z, h)
             y_t_mu, y_t_var = self.decoder(x_target[:, t], z_t, h_t)
 
-            y_mu.append(y_t_mu)
-            y_var.append(y_t_var)
+            y_mu_list.append(y_t_mu)
+            y_var_list.append(y_t_var)
 
         # Stack and resize
-        y_mu = torch.stack(y_mu)
-        y_var = torch.stack(y_var)
+        y_mu = torch.stack(y_mu_list)
+        y_var = torch.stack(y_var_list)
 
         y_mu = y_mu.transpose(0, 1)
         y_var = y_var.transpose(0, 1)
@@ -276,8 +276,8 @@ class SequentialNP(BaseNP):
         h_t = x_target.new_zeros((batch, self.h_dim))
         z_t = x_target.new_zeros((batch, self.z_dim))
 
-        nll_loss = 0
-        kl_loss = 0
+        nll_loss = x_target.new_zeros((batch,))
+        kl_loss = x_target.new_zeros((batch,))
 
         for t in range(seq_len):
             # 1. Encode context and target: r = f(x, y)
