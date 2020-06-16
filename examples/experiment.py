@@ -26,14 +26,14 @@ class Trainer:
         hparams (dict): Dictionary of hyper-parameters.
     """
 
-    def __init__(self, model: npr.BaseNP, hparams: dict):
+    def __init__(self, model: npr.BaseNP, hparams: dict) -> None:
         # Params
         self.model = model
         self.hparams = copy.deepcopy(hparams)
 
         # Attributes
-        self.logdir = None
-        self.logger = None
+        self.logdir = pathlib.Path()
+        self.logger = logging.Logger("")
         self.writer = None
         self.train_loader = None
         self.test_loader = None
@@ -354,7 +354,7 @@ class Trainer:
         self.logger.info("Start training")
 
         pbar = tqdm.trange(1, self.max_epochs + 1)
-        postfix = {"train/loss": 0, "test/loss": 0}
+        postfix = {"train/loss": 0.0, "test/loss": 0.0}
         self.epoch = 0
 
         for _ in pbar:
