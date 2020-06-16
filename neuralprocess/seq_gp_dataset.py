@@ -38,7 +38,7 @@ class SequentialGPDataset(Dataset):
     def __init__(self, train: bool, batch_size: int, seq_len: int,
                  num_context_min: int = 3, num_context_max: int = 10,
                  num_target_min: int = 2, num_target_max: int = 10,
-                 x_dim: int = 1, y_dim: int = 1, gp_params: dict = {}):
+                 x_dim: int = 1, y_dim: int = 1, gp_params: dict = {}) -> None:
         super().__init__()
 
         # Args

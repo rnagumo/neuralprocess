@@ -18,7 +18,7 @@ class GaussianProcess(torch.nn.Module):
         variance (float, optional): Magnitude of std.
     """
 
-    def __init__(self, l2_scale: float = 0.4, variance: float = 1.0):
+    def __init__(self, l2_scale: float = 0.4, variance: float = 1.0) -> None:
         super().__init__()
 
         # Original value

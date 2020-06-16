@@ -49,7 +49,7 @@ class DAGEmbedding(nn.Module):
         temperature (float, optional): Temperature for relaxed bernoulli dist.
     """
 
-    def __init__(self, u_dim: int, temperature: float = 0.3):
+    def __init__(self, u_dim: int, temperature: float = 0.3) -> None:
         super().__init__()
 
         self.scale = nn.Parameter((torch.ones(1) * u_dim ** 0.5).log())
@@ -167,7 +167,8 @@ class FunctionalNP(BaseNP):
     """
 
     def __init__(self, x_dim: int, y_dim: int, h_dim: int, u_dim: int,
-                 z_dim: int, fb_z: float = 1.0, normalize: bool = True):
+                 z_dim: int, fb_z: float = 1.0, normalize: bool = True
+                 ) -> None:
         super().__init__()
 
         # h = f(x): Input transformation

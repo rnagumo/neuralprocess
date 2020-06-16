@@ -66,7 +66,7 @@ class MultiHeadAttention(nn.Module):
     """
 
     def __init__(self, k_dim: int, v_dim: int, d_k: int, d_v: int,
-                 n_head: int):
+                 n_head: int) -> None:
         super().__init__()
 
         self.n_head = n_head
@@ -135,7 +135,7 @@ class SelfAttention(MultiHeadAttention):
         n_head (int): Number of heads.
     """
 
-    def __init__(self, x_dim: int, d_x: int, n_head: int):
+    def __init__(self, x_dim: int, d_x: int, n_head: int) -> None:
         super().__init__(x_dim, x_dim, d_x, d_x, n_head)
 
     def forward(self, x: Tensor) -> Tensor:

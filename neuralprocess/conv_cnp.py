@@ -74,7 +74,7 @@ class Encoder(nn.Module):
         length_scale (float): Initial length scale of RBF kernel.
     """
 
-    def __init__(self, y_dim: int, h_dim: int, length_scale: float):
+    def __init__(self, y_dim: int, h_dim: int, length_scale: float) -> None:
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -135,7 +135,7 @@ class Decoder(nn.Module):
         length_scale (float): Initial length scale of RBF kernel.
     """
 
-    def __init__(self, h_dim: int, y_dim: int, length_scale: float):
+    def __init__(self, h_dim: int, y_dim: int, length_scale: float) -> None:
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -188,7 +188,7 @@ class ConvCNP(BaseNP):
     """
 
     def __init__(self, x_dim: int, y_dim: int, h_dim: int = 8,
-                 points_per_unit: int = 64):
+                 points_per_unit: int = 64) -> None:
         super().__init__()
 
         self.points_per_unit = points_per_unit

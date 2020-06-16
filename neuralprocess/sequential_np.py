@@ -23,7 +23,7 @@ class DeterministicEncoder(nn.Module):
         r_dim (int): Dimension size of r (representation).
     """
 
-    def __init__(self, x_dim: int, y_dim: int, r_dim: int):
+    def __init__(self, x_dim: int, y_dim: int, r_dim: int) -> None:
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -67,7 +67,7 @@ class StochasticEncoder(nn.Module):
         z_dim (int): Dimension size of z (stochastic latent).
     """
 
-    def __init__(self, h_dim: int, r_dim: int, z_dim: int):
+    def __init__(self, h_dim: int, r_dim: int, z_dim: int) -> None:
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -114,7 +114,7 @@ class Decoder(nn.Module):
         z_dim (int): Dimension size of z (stochastic latent).
     """
 
-    def __init__(self, x_dim: int, y_dim: int, h_dim: int, z_dim: int):
+    def __init__(self, x_dim: int, y_dim: int, h_dim: int, z_dim: int) -> None:
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -180,7 +180,7 @@ class SequentialNP(BaseNP):
     """
 
     def __init__(self, x_dim: int, y_dim: int, r_dim: int, z_dim: int,
-                 h_dim: int):
+                 h_dim: int) -> None:
         super().__init__()
 
         self.z_dim = z_dim
