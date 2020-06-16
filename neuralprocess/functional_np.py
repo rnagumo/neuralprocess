@@ -55,7 +55,7 @@ class DAGEmbedding(nn.Module):
         self.scale = nn.Parameter((torch.ones(1) * u_dim ** 0.5).log())
         self.temperature = temperature
 
-    def forward(self, u_c: Tensor, u_t: Tensor) -> Tuple[Tensor]:
+    def forward(self, u_c: Tensor, u_t: Tensor) -> Tuple[Tensor, Tensor]:
         """Forward method to return graph G, A.
 
         Args:
