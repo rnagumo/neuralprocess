@@ -4,7 +4,7 @@
 Mainly used for data generation and model comparison.
 """
 
-from typing import Tuple, Union
+from typing import Tuple, Union, Optional
 
 import torch
 from torch import Tensor
@@ -30,8 +30,8 @@ class GaussianProcess(torch.nn.Module):
         self.variance_param = torch.tensor([variance])
 
         # Saved training data
-        self._x_train = torch.tensor([])
-        self._y_train = torch.tensor([])
+        self._x_train: Optional[Tensor] = None
+        self._y_train: Optional[Tensor] = None
 
         # Check parameters
         if l2_scale <= 0:
@@ -78,9 +78,6 @@ class GaussianProcess(torch.nn.Module):
             raise ValueError("Dimension size of x0 and x1 should be same: "
                              f"x0 size = {x0.size()}, x1 size = {x1.size()}")
 
-        # Data size
-        batch_size, num_points, x_dim = x0.size()
-
         # Expand and take diff (batch_size, num_points_0, num_points_1, x_dim)
         x0_unsq = x0.unsqueeze(2)  # (batch_size, num_points_0, 1, x_dim)
         x1_unsq = x1.unsqueeze(1)  # (batch_size, 1, num_points_1, x_dim)
@@ -94,7 +91,7 @@ class GaussianProcess(torch.nn.Module):
 
         # Add some noise to the diagonal to make the cholesky work
         if kernel.size(1) == kernel.size(2):
-            kernel += (eps ** 2) * torch.eye(num_points, device=x0.device)
+            kernel += (eps ** 2) * torch.eye(kernel.size(1), device=x0.device)
 
         return kernel
 
