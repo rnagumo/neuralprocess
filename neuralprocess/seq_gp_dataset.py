@@ -1,7 +1,7 @@
 
 """Dataset for sequential data with Gaussian Process."""
 
-from typing import Tuple
+from typing import Tuple, Optional
 
 import random
 
@@ -38,7 +38,8 @@ class SequentialGPDataset(Dataset):
     def __init__(self, train: bool, batch_size: int, seq_len: int,
                  num_context_min: int = 3, num_context_max: int = 10,
                  num_target_min: int = 2, num_target_max: int = 10,
-                 x_dim: int = 1, y_dim: int = 1, gp_params: dict = {}) -> None:
+                 x_dim: int = 1, y_dim: int = 1,
+                 gp_params: Optional[dict] = None) -> None:
         super().__init__()
 
         # Args
@@ -53,6 +54,7 @@ class SequentialGPDataset(Dataset):
         self.y_dim = y_dim
 
         # Attributes
+        gp_params = gp_params if gp_params else {}
         self.gp = GaussianProcess(**gp_params)
         self.x_context = torch.tensor([])
         self.y_context = torch.tensor([])
