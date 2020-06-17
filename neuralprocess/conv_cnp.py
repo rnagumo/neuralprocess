@@ -31,9 +31,6 @@ def rbf_kernel(x0: Tensor, x1: Tensor, sigma: Tensor) -> Tensor:
         kernel (torch.Tensor): kernel matrix of size `(b, n, m, c)`.
     """
 
-    # Data size
-    batch_size, num_points, x_dim = x0.size()
-
     # Expand and take diff (b, n, m, 1)
     x0_unsq = x0.unsqueeze(2)  # (b, n, 1, x_dim)
     x1_unsq = x1.unsqueeze(1)  # (b, 1, m, x_dim)
