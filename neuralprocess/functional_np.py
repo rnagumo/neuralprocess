@@ -383,11 +383,12 @@ class FunctionalNP(BaseNP):
         nll_py_t = nll_normal(y_target, mu_py_t, F.softplus(logvar_py_t))
 
         # Loss
-        loss_c = (kl_pqz_c + nll_py_c).mean()
-        loss_t = (kl_pqz_t + nll_py_t).mean()
+        num_target = x_target.size(1)
+        loss_c = (kl_pqz_c + nll_py_c).sum(dim=1)
+        loss_t = (kl_pqz_t + nll_py_t).sum(dim=1)
 
         loss_dict = {
-            "loss": loss_c + loss_t,
+            "loss": (loss_c + loss_t).mean(),
             "nll_loss_c": nll_py_c.mean(),
             "kl_loss_c": kl_pqz_c.mean(),
             "nll_loss_t": nll_py_t.mean(),
