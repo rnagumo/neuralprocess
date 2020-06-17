@@ -1,6 +1,8 @@
 
 """Trainer class."""
 
+from typing import DefaultDict, Optional
+
 import collections
 import copy
 import json
@@ -34,11 +36,11 @@ class Trainer:
         # Attributes
         self.logdir = pathlib.Path()
         self.logger = logging.Logger("")
-        self.writer = None
-        self.train_loader = None
-        self.test_loader = None
-        self.optimizer = None
-        self.device = None
+        self.writer: tb.SummaryWriter
+        self.train_loader: torch.utils.data.dataloader.DataLoader
+        self.test_loader: torch.utils.data.dataloader.DataLoader
+        self.optimizer: optim.optimizer.Optimizer
+        self.device: torch.device
         self.epoch = 0
 
         # Hyper-params
@@ -134,7 +136,7 @@ class Trainer:
         """
 
         # Logger for loss
-        loss_dict = collections.defaultdict(float)
+        loss_dict: DefaultDict[str, float] = collections.defaultdict(float)
 
         # Resample dataset with/without kernel hyper-parameter update
         resample_params = self.model_name in ("dnp", "anp")
@@ -174,7 +176,7 @@ class Trainer:
         """
 
         # Logger for loss
-        loss_dict = collections.defaultdict(float)
+        loss_dict: DefaultDict[str, float] = collections.defaultdict(float)
 
         # Run
         self.model.eval()
