@@ -49,13 +49,13 @@ class DAGEmbedding(nn.Module):
         temperature (float, optional): Temperature for relaxed bernoulli dist.
     """
 
-    def __init__(self, u_dim: int, temperature: float = 0.3):
+    def __init__(self, u_dim: int, temperature: float = 0.3) -> None:
         super().__init__()
 
         self.scale = nn.Parameter((torch.ones(1) * u_dim ** 0.5).log())
         self.temperature = temperature
 
-    def forward(self, u_c: Tensor, u_t: Tensor) -> Tuple[Tensor]:
+    def forward(self, u_c: Tensor, u_t: Tensor) -> Tuple[Tensor, Tensor]:
         """Forward method to return graph G, A.
 
         Args:
@@ -167,7 +167,8 @@ class FunctionalNP(BaseNP):
     """
 
     def __init__(self, x_dim: int, y_dim: int, h_dim: int, u_dim: int,
-                 z_dim: int, fb_z: float = 1.0, normalize: bool = True):
+                 z_dim: int, fb_z: float = 1.0, normalize: bool = True
+                 ) -> None:
         super().__init__()
 
         # h = f(x): Input transformation
@@ -382,11 +383,12 @@ class FunctionalNP(BaseNP):
         nll_py_t = nll_normal(y_target, mu_py_t, F.softplus(logvar_py_t))
 
         # Loss
-        loss_c = (kl_pqz_c + nll_py_c).mean()
-        loss_t = (kl_pqz_t + nll_py_t).mean()
+        num_target = x_target.size(1)
+        loss_c = (kl_pqz_c + nll_py_c).sum(dim=1)
+        loss_t = (kl_pqz_t + nll_py_t).sum(dim=1)
 
         loss_dict = {
-            "loss": loss_c + loss_t,
+            "loss": (loss_c + loss_t).mean(),
             "nll_loss_c": nll_py_c.mean(),
             "kl_loss_c": kl_pqz_c.mean(),
             "nll_loss_t": nll_py_t.mean(),

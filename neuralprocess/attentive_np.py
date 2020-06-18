@@ -27,7 +27,8 @@ class DeterministicEncoder(nn.Module):
         n_head (int): Number of head in self-attention module.
     """
 
-    def __init__(self, x_dim: int, y_dim: int, r_dim: int, n_head: int):
+    def __init__(self, x_dim: int, y_dim: int, r_dim: int, n_head: int
+                 ) -> None:
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -76,7 +77,7 @@ class StochasticEncoder(nn.Module):
     """
 
     def __init__(self, x_dim: int, y_dim: int, s_dim: int, z_dim: int,
-                 n_head: int):
+                 n_head: int) -> None:
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -132,7 +133,8 @@ class Decoder(nn.Module):
         z_dim (int): Dimension size of z (stochastic latent).
     """
 
-    def __init__(self, x_dim: int, y_dim: int, r_dim: int, z_dim: int):
+    def __init__(self, x_dim: int, y_dim: int, r_dim: int, z_dim: int
+                 ) -> None:
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -199,7 +201,7 @@ class AttentiveNP(BaseNP):
     """
 
     def __init__(self, x_dim: int, y_dim: int, r_dim: int, s_dim: int,
-                 z_dim: int, n_head: int):
+                 z_dim: int, n_head: int) -> None:
         super().__init__()
 
         self.encoder_r = DeterministicEncoder(x_dim, y_dim, r_dim, n_head)

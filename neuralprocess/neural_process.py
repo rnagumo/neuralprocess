@@ -24,7 +24,7 @@ class Encoder(nn.Module):
         z_dim (int): Dimension size of z (stochastic latent).
     """
 
-    def __init__(self, x_dim: int, y_dim: int, r_dim: int, z_dim: int):
+    def __init__(self, x_dim: int, y_dim: int, r_dim: int, z_dim: int) -> None:
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -76,7 +76,7 @@ class Decoder(nn.Module):
         z_dim (int): Dimension size of z (stochastic latent).
     """
 
-    def __init__(self, x_dim: int, y_dim: int, z_dim: int):
+    def __init__(self, x_dim: int, y_dim: int, z_dim: int) -> None:
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -134,7 +134,7 @@ class NeuralProcess(BaseNP):
             sample.
     """
 
-    def __init__(self, x_dim: int, y_dim: int, r_dim: int, z_dim: int):
+    def __init__(self, x_dim: int, y_dim: int, r_dim: int, z_dim: int) -> None:
         super().__init__()
 
         self.encoder = Encoder(x_dim, y_dim, r_dim, z_dim)

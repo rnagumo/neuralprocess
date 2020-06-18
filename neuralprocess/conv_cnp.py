@@ -31,9 +31,6 @@ def rbf_kernel(x0: Tensor, x1: Tensor, sigma: Tensor) -> Tensor:
         kernel (torch.Tensor): kernel matrix of size `(b, n, m, c)`.
     """
 
-    # Data size
-    batch_size, num_points, x_dim = x0.size()
-
     # Expand and take diff (b, n, m, 1)
     x0_unsq = x0.unsqueeze(2)  # (b, n, 1, x_dim)
     x1_unsq = x1.unsqueeze(1)  # (b, 1, m, x_dim)
@@ -71,10 +68,10 @@ class Encoder(nn.Module):
     Args:
         y_dim (int): Dimension size of y.
         h_dim (int): Dimension size of h (representation).
-        length_scale (int): Initial length scale of RBF kernel.
+        length_scale (float): Initial length scale of RBF kernel.
     """
 
-    def __init__(self, y_dim: int, h_dim: int, length_scale: int):
+    def __init__(self, y_dim: int, h_dim: int, length_scale: float) -> None:
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -132,10 +129,10 @@ class Decoder(nn.Module):
     Args:
         h_dim (int): Dimension size of representation h.
         y_dim (int): Dimension size of output y.
-        length_scale (int): Initial length scale of RBF kernel.
+        length_scale (float): Initial length scale of RBF kernel.
     """
 
-    def __init__(self, h_dim: int, y_dim: int, length_scale: int):
+    def __init__(self, h_dim: int, y_dim: int, length_scale: float) -> None:
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -188,7 +185,7 @@ class ConvCNP(BaseNP):
     """
 
     def __init__(self, x_dim: int, y_dim: int, h_dim: int = 8,
-                 points_per_unit: int = 64):
+                 points_per_unit: int = 64) -> None:
         super().__init__()
 
         self.points_per_unit = points_per_unit

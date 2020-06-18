@@ -73,6 +73,7 @@ optimizer = torch.optim.Adam(model.parameters())
 
 # Train
 for data in loader:
+    optimizer.zero_grad()
     loss_dict = model.loss_func(*data)
     loss = loss_dict["loss"].mean()
     loss.backward()

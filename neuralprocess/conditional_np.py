@@ -24,7 +24,7 @@ class Encoder(nn.Module):
         r_dim (int): Dimension size of r (representation).
     """
 
-    def __init__(self, x_dim: int, y_dim: int, r_dim: int):
+    def __init__(self, x_dim: int, y_dim: int, r_dim: int) -> None:
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -68,7 +68,7 @@ class Decoder(nn.Module):
         r_dim (int): Dimension size of r (representation).
     """
 
-    def __init__(self, x_dim: int, y_dim: int, r_dim: int):
+    def __init__(self, x_dim: int, y_dim: int, r_dim: int) -> None:
         super().__init__()
 
         self.fc = nn.Sequential(
@@ -126,7 +126,7 @@ class ConditionalNP(BaseNP):
             query.
     """
 
-    def __init__(self, x_dim: int, y_dim: int, r_dim: int):
+    def __init__(self, x_dim: int, y_dim: int, r_dim: int) -> None:
         super().__init__()
 
         self.encoder = Encoder(x_dim, y_dim, r_dim)

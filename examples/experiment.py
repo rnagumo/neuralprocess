@@ -1,6 +1,8 @@
 
 """Trainer class."""
 
+from typing import DefaultDict, Optional
+
 import collections
 import copy
 import json
@@ -26,19 +28,19 @@ class Trainer:
         hparams (dict): Dictionary of hyper-parameters.
     """
 
-    def __init__(self, model: npr.BaseNP, hparams: dict):
+    def __init__(self, model: npr.BaseNP, hparams: dict) -> None:
         # Params
         self.model = model
         self.hparams = copy.deepcopy(hparams)
 
         # Attributes
-        self.logdir = None
-        self.logger = None
-        self.writer = None
-        self.train_loader = None
-        self.test_loader = None
-        self.optimizer = None
-        self.device = None
+        self.logdir = pathlib.Path()
+        self.logger = logging.Logger("")
+        self.writer: tb.SummaryWriter
+        self.train_loader: torch.utils.data.dataloader.DataLoader
+        self.test_loader: torch.utils.data.dataloader.DataLoader
+        self.optimizer: optim.optimizer.Optimizer
+        self.device: torch.device
         self.epoch = 0
 
         # Hyper-params
@@ -134,7 +136,7 @@ class Trainer:
         """
 
         # Logger for loss
-        loss_dict = collections.defaultdict(float)
+        loss_dict: DefaultDict[str, float] = collections.defaultdict(float)
 
         # Resample dataset with/without kernel hyper-parameter update
         resample_params = self.model_name in ("dnp", "anp")
@@ -174,7 +176,7 @@ class Trainer:
         """
 
         # Logger for loss
-        loss_dict = collections.defaultdict(float)
+        loss_dict: DefaultDict[str, float] = collections.defaultdict(float)
 
         # Run
         self.model.eval()
@@ -354,7 +356,7 @@ class Trainer:
         self.logger.info("Start training")
 
         pbar = tqdm.trange(1, self.max_epochs + 1)
-        postfix = {"train/loss": 0, "test/loss": 0}
+        postfix = {"train/loss": 0.0, "test/loss": 0.0}
         self.epoch = 0
 
         for _ in pbar:
