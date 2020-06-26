@@ -115,6 +115,8 @@ print(y_t.size(), y_mu.size(), y_var.size())
 |Convolutional Conditional Neural Process|![cnp](./images/convcnp.png)|
 |Sequential Neural Process|![snp](./images/snp.png)|
 
+* **Caution**: Functional Neural Process is implemented, but it does not reproduce the original paper.
+
 # References
 
 Original paper
@@ -124,9 +126,11 @@ Original paper
 * H, Kim *et al*., "Attentive Neural Processes" ([arXiv](http://arxiv.org/abs/1901.05761))
 * J. Gordon *et al*., "Convolutional Conditional Neural Processes" ([arXiv](http://arxiv.org/abs/1910.13556))
 * G. Singh *et al*., "Sequential Neural Processes" ([arXiv](http://arxiv.org/abs/1906.10264))
+* C. Louizos *et al*., "The Functional Neural Process" ([arXiv](http://arxiv.org/abs/1906.08324))
 
 Sample code
 
 * DeepMind "The Neural Process Family" ([GitHub](https://github.com/deepmind/neural-processes))
 * cambridge-mlg "Convolutional Conditional Neural Processes" ([GitHub](https://github.com/cambridge-mlg/convcnp))
 * singhgautam "Sequential Neural Processes" ([GitHub](https://github.com/singhgautam/snp))
+* AMLab-Amsterdam "FNP" ([GitHub](https://github.com/AMLab-Amsterdam/FNP))
