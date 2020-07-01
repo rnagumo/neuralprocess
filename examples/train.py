@@ -76,9 +76,9 @@ def init_args():
                         help="Number of CUDA device. 'null' means cpu device.")
     parser.add_argument("--seed", type=int, default=0,
                         help="Random seed.")
-    parser.add_argument("--epochs", type=int, default=10,
+    parser.add_argument("--max-epochs", type=int, default=10,
                         help="Number of training epochs.")
-    parser.add_argument("--log-save-interval", type=int, default=10,
+    parser.add_argument("--log-interval", type=int, default=10,
                         help="Interval epochs of saving logs.")
 
     return parser.parse_args()
