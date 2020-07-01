@@ -12,4 +12,4 @@ export EXPERIMENT_NAME=${MODEL_NAME}
 export CONFIG_PATH=./examples/config_1d.json
 
 python3 ./examples/train.py --model ${MODEL_NAME} --seed 0 \
-    --epochs 100000 --log-save-interval 10000
+    --max-epochs 100000 --log-interval 10000

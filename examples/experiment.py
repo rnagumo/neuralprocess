@@ -4,7 +4,7 @@
 from typing import DefaultDict, Optional
 
 import collections
-import copy
+import dataclasses
 import json
 import logging
 import pathlib
@@ -20,18 +20,43 @@ import tensorboardX as tb
 import neuralprocess as npr
 
 
+@dataclasses.dataclass
+class Config:
+    # From kwargs
+    model: str
+    cuda: str
+    seed: int
+    max_epochs: int
+    log_interval: int
+
+    # From config file
+    train_dataset_params: dict
+    test_dataset_params: dict
+    cnp_params: dict
+    np_params: dict
+    dnp_params: dict
+    anp_params: dict
+    convcnp_params: dict
+    fnp_params: dict
+    snp_params: dict
+
+    # From params
+    logdir: str
+    gpus: Optional[str]
+
+
 class Trainer:
     """Trainer class for neural process.
 
     Args:
         model (neuralprocess.BaseNP): NP model.
-        hparams (dict): Dictionary of hyper-parameters.
+        config (dict): Dictionary of hyper-parameters.
     """
 
-    def __init__(self, model: npr.BaseNP, hparams: dict) -> None:
+    def __init__(self, model: npr.BaseNP, config: dict) -> None:
         # Params
         self.model = model
-        self.hparams = copy.deepcopy(hparams)
+        self.config = Config(**config)
 
         # Attributes
         self.logdir = pathlib.Path()
@@ -43,12 +68,6 @@ class Trainer:
         self.device: torch.device
         self.epoch = 0
 
-        # Hyper-params
-        self.model_name = ""
-        self.gpus = None
-        self.log_interval = 10
-        self.max_epochs = 10
-
     def check_logdir(self) -> None:
         """Checks log directory.
 
@@ -56,8 +75,8 @@ class Trainer:
         exist.
         """
 
-        logdir = self.hparams.get("logdir", "./logs/tmp/")
-        self.logdir = pathlib.Path(logdir, time.strftime("%Y%m%d%H%M"))
+        self.logdir = pathlib.Path(
+            self.config.logdir, time.strftime("%Y%m%d%H%M"))
         self.logdir.mkdir(parents=True, exist_ok=True)
 
     def init_logger(self, save_file: bool = True) -> None:
@@ -103,26 +122,25 @@ class Trainer:
 
         self.logger.info("Load dataset")
 
-        train_params = self.hparams.get("train_dataset_params", {})
-        test_params = self.hparams.get("test_dataset_params", {})
-
-        if self.model_name == "snp":
+        if self.config.model == "snp":
             self.train_loader = torch.utils.data.DataLoader(
                 npr.SequentialGPDataset(
-                    train=True, seq_len=20, **train_params),
+                    train=True, seq_len=20,
+                    **self.config.train_dataset_params),
                 shuffle=True, batch_size=16)
 
             self.test_loader = torch.utils.data.DataLoader(
                 npr.SequentialGPDataset(
-                    train=False, seq_len=20, **test_params),
+                    train=False, seq_len=20,
+                    **self.config.test_dataset_params),
                 shuffle=False, batch_size=1)
         else:
             self.train_loader = torch.utils.data.DataLoader(
-                npr.GPDataset(train=True, **train_params),
+                npr.GPDataset(train=True, **self.config.train_dataset_params),
                 shuffle=True, batch_size=16)
 
             self.test_loader = torch.utils.data.DataLoader(
-                npr.GPDataset(train=False, **test_params),
+                npr.GPDataset(train=False, **self.config.test_dataset_params),
                 shuffle=False, batch_size=1)
 
         self.logger.info(f"Train dataset size: {len(self.train_loader)}")
@@ -139,7 +157,7 @@ class Trainer:
         loss_dict: DefaultDict[str, float] = collections.defaultdict(float)
 
         # Resample dataset with/without kernel hyper-parameter update
-        resample_params = self.model_name in ("dnp", "anp")
+        resample_params = self.config.model in ("dnp", "anp")
         self.train_loader.dataset.generate_dataset(
             resample_params=resample_params, single_params=False)
 
@@ -224,7 +242,7 @@ class Trainer:
     def save_configs(self) -> None:
         """Saves setting including condig and args in json format."""
 
-        config = copy.deepcopy(self.hparams)
+        config = dataclasses.asdict(self.config)
         config["logdir"] = str(self.logdir)
 
         with (self.logdir / "config.json").open("w") as f:
@@ -243,7 +261,7 @@ class Trainer:
         mu = mu.cpu()
         var = var.cpu()
 
-        if self.model_name == "snp":
+        if self.config.model == "snp":
             self._plot_sequence(x_ctx, y_ctx, x_tgt, y_tgt, mu, var)
         else:
             self._plot_single(x_ctx, y_ctx, x_tgt, y_tgt, mu, var)
@@ -330,12 +348,6 @@ class Trainer:
 
         self.logger.info("Start experiment")
 
-        # Get params
-        self.model_name = self.hparams.get("model", "cnp")
-        self.gpus = self.hparams.get("gpus", None)
-        self.log_interval = self.hparams.get("log_save_interval", 10)
-        self.max_epochs = self.hparams.get("epochs", 10)
-
         # Save config of this experiment
         self.save_configs()
 
@@ -343,10 +355,10 @@ class Trainer:
         self.load_dataloader()
 
         # Model to device
-        if self.gpus is None:
+        if self.config.gpus is None:
             self.device = torch.device("cpu")
         else:
-            self.device = torch.device(f"cuda:{self.gpus}")
+            self.device = torch.device(f"cuda:{self.config.gpus}")
         self.model = self.model.to(self.device)
 
         # Optimizer
@@ -355,7 +367,7 @@ class Trainer:
         # Run training
         self.logger.info("Start training")
 
-        pbar = tqdm.trange(1, self.max_epochs + 1)
+        pbar = tqdm.trange(1, self.config.max_epochs + 1)
         postfix = {"train/loss": 0.0, "test/loss": 0.0}
         self.epoch = 0
 
@@ -366,7 +378,7 @@ class Trainer:
             train_loss = self.train()
             postfix["train/loss"] = train_loss
 
-            if self.epoch % self.log_interval == 0:
+            if self.epoch % self.config.log_interval == 0:
                 # Calculate test loss
                 test_loss = self.test()
                 postfix["test/loss"] = test_loss
@@ -389,7 +401,7 @@ class Trainer:
 
         self.logger.info("Start run")
         self.logger.info(f"Logdir: {self.logdir}")
-        self.logger.info(f"Params: {self.hparams}")
+        self.logger.info(f"Params: {self.config}")
 
         # Run
         try:
