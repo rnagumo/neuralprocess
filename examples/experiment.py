@@ -341,15 +341,13 @@ class Trainer:
         torch.save(self.train_loader, self.logdir / "train_loader.pt")
         torch.save(self.test_loader, self.logdir / "test_loader.pt")
 
+        self.save_configs()
         self.writer.close()
 
     def _base_run(self) -> None:
         """Base running method."""
 
         self.logger.info("Start experiment")
-
-        # Save config of this experiment
-        self.save_configs()
 
         # Data
         self.load_dataloader()
@@ -388,9 +386,6 @@ class Trainer:
             # Update postfix
             pbar.set_postfix(postfix)
 
-        # Post process
-        self.quit()
-
     def run(self) -> None:
         """Main run method."""
 
@@ -408,5 +403,7 @@ class Trainer:
             self._base_run()
         except Exception as e:
             self.logger.exception(f"Run function error: {e}")
+        finally:
+            self.quit()
 
         self.logger.info("Finish run")
